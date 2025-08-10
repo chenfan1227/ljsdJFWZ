@@ -1,0 +1,131 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '11.0'
+install! 'cocoapods', :deterministic_uuids => false
+
+target 'JifenbaoMobile' do
+  config = use_native_modules!
+
+  # Flags change depending on the env values.
+  flags = get_default_flags()
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # Hermes is now enabled by default. Disable by setting this flag to false.
+    :hermes_enabled => flags[:hermes_enabled],
+    :fabric_enabled => flags[:fabric_enabled],
+    # Enables Flipper.
+    :flipper_configuration => FlipperConfiguration.enabled,
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  # React Native 核心依赖
+  pod 'React', :path => '../node_modules/react-native/'
+  pod 'React-Core', :path => '../node_modules/react-native/'
+  pod 'React-DevSupport', :path => '../node_modules/react-native/'
+  
+  # React Native 模块
+  pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-async-storage/async-storage'
+  pod 'react-native-permissions', :path => '../node_modules/react-native-permissions'
+  pod 'react-native-device-info', :path => '../node_modules/react-native-device-info'
+  pod 'react-native-keychain', :path => '../node_modules/react-native-keychain'
+  pod 'react-native-image-picker', :path => '../node_modules/react-native-image-picker'
+  pod 'react-native-contacts', :path => '../node_modules/react-native-contacts'
+  pod 'react-native-geolocation', :path => '../node_modules/react-native-geolocation-service'
+  pod 'react-native-share', :path => '../node_modules/react-native-share'
+  pod 'react-native-webview', :path => '../node_modules/react-native-webview'
+  
+  # UI 组件
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+  pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'
+  pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
+  pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
+  pod 'RNScreens', :path => '../node_modules/react-native-screens'
+  pod 'react-native-safe-area-context', :path => '../node_modules/react-native-safe-area-context'
+  
+  # Google Mobile Ads SDK
+  pod 'react-native-google-mobile-ads', :path => '../node_modules/react-native-google-mobile-ads'
+  pod 'Google-Mobile-Ads-SDK', '10.14.0'
+  
+  # Firebase SDK
+  pod 'Firebase/Core'
+  pod 'Firebase/Analytics'
+  pod 'Firebase/Messaging'
+  pod 'Firebase/Crashlytics'
+  pod 'Firebase/Performance'
+  pod 'Firebase/Database'
+  pod 'Firebase/Auth'
+  pod 'Firebase/Storage'
+  
+  # 权限相关
+  permissions_path = '../node_modules/react-native-permissions/ios'
+  pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
+  pod 'Permission-PhotoLibrary', :path => "#{permissions_path}/PhotoLibrary"
+  pod 'Permission-Microphone', :path => "#{permissions_path}/Microphone"
+  pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
+  pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
+  pod 'Permission-Contacts', :path => "#{permissions_path}/Contacts"
+  pod 'Permission-Calendars', :path => "#{permissions_path}/Calendars"
+  pod 'Permission-Reminders', :path => "#{permissions_path}/Reminders"
+  pod 'Permission-Motion', :path => "#{permissions_path}/Motion"
+  pod 'Permission-SpeechRecognition', :path => "#{permissions_path}/SpeechRecognition"
+  pod 'Permission-Siri', :path => "#{permissions_path}/Siri"
+  pod 'Permission-BluetoothPeripheral', :path => "#{permissions_path}/BluetoothPeripheral"
+  pod 'Permission-FaceID', :path => "#{permissions_path}/FaceID"
+  pod 'Permission-MediaLibrary', :path => "#{permissions_path}/MediaLibrary"
+  pod 'Permission-AppTrackingTransparency', :path => "#{permissions_path}/AppTrackingTransparency"
+  
+  # 网络和安全
+  pod 'AFNetworking', '~> 4.0'
+  
+  # 图片处理
+  pod 'SDWebImage', '~> 5.0'
+  
+  # 二维码
+  pod 'ZXingObjC', '~> 3.6'
+  
+  # 动画
+  pod 'lottie-ios', '~> 4.0'
+  
+  # 数据库
+  pod 'FMDB', '~> 2.7'
+  pod 'SQLite.swift', '~> 0.14'
+  
+  # 加密
+  pod 'CryptoSwift', '~> 1.7'
+  
+  # 日志
+  pod 'CocoaLumberjack', '~> 3.8'
+  
+  target 'JifenbaoMobileTests' do
+    inherit! :complete
+    # Pods for testing
+  end
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      # Set `mac_catalyst_enabled` to `true` in order to apply patches
+      # necessary for Mac Catalyst builds
+      :mac_catalyst_enabled => false
+    )
+    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+    
+    # 修复 iOS 部署目标版本
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+      end
+    end
+    
+    # 修复编译警告
+    installer.pods_project.build_configurations.each do |config|
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+    end
+    
+    # 启用 Flipper
+    flipper_post_install(installer)
+  end
+end

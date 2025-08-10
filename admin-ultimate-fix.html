@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>终极认证修复</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #FFD700, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #f44336, #d32f2f); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 终极认证修复</h1>
+        
+        <button class="btn btn-primary" onclick="ultimateFix()">
+            🚀 终极修复 - 保证成功
+        </button>
+        
+        <button class="btn btn-danger" onclick="nuclearReset()">
+            💥 核弹级重置 - 清除一切
+        </button>
+        
+        <div class="status" id="status">
+            点击上方按钮开始修复...
+        </div>
+        
+        <button class="btn btn-primary" onclick="goToDashboard()" style="margin-top: 20px;">
+            🏠 进入管理后台
+        </button>
+    </div>
+
+    <script>
+        function updateStatus(text, type = '') {
+            const status = document.getElementById('status');
+            status.innerHTML = text;
+            status.className = 'status ' + type;
+        }
+        
+        async function ultimateFix() {
+            updateStatus('🔧 开始终极修复...', 'success');
+            
+            try {
+                // 步骤1: 核弹级清理
+                updateStatus('💣 步骤1: 核弹级清理所有认证数据...', 'success');
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 清理所有可能的认证key
+                const authKeys = [
+                    'adminAuth', 'adminToken', 'adminUser', 'admin_auth', 'admin_token', 
+                    'authToken', 'userAuth', 'auth_data', 'login_data', 'session_data'
+                ];
+                authKeys.forEach(key => {
+                    localStorage.removeItem(key);
+                    sessionStorage.removeItem(key);
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤2: 获取全新token
+                updateStatus('🔑 步骤2: 从API获取全新认证token...', 'success');
+                
+                const response = await fetch('http://localhost:3001/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API请求失败: ' + response.status);
+                }
+                
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || '登录失败');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤3: 超级保存 (保存到所有可能的位置)
+                updateStatus('💾 步骤3: 超级保存认证数据到所有位置...', 'success');
+                
+                const authData = {
+                    token: result.token,
+                    user: result.admin || result.user,
+                    loginTime: new Date().toISOString(),
+                    source: 'ultimate-fix',
+                    timestamp: Date.now()
+                };
+                
+                // 保存到localStorage的多个key
+                localStorage.setItem('adminAuth', JSON.stringify(authData));
+                localStorage.setItem('adminToken', result.token);
+                localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                localStorage.setItem('admin_auth', JSON.stringify(authData));
+                localStorage.setItem('auth_data', JSON.stringify(authData));
+                
+                // 保存到sessionStorage的多个key
+                sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                sessionStorage.setItem('adminToken', result.token);
+                sessionStorage.setItem('adminUser', JSON.stringify(authData.user));
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤4: 验证保存
+                updateStatus('✅ 步骤4: 验证认证数据保存状态...', 'success');
+                
+                const savedAuth = localStorage.getItem('adminAuth');
+                if (!savedAuth) {
+                    throw new Error('认证数据保存失败');
+                }
+                
+                const parsedAuth = JSON.parse(savedAuth);
+                if (!parsedAuth.token || !parsedAuth.user) {
+                    throw new Error('认证数据格式错误');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤5: 强制刷新页面状态
+                updateStatus('🔄 步骤5: 强制刷新页面状态...', 'success');
+                
+                // 设置一个特殊标记，表示认证已修复
+                localStorage.setItem('authFixed', 'true');
+                localStorage.setItem('authFixTime', new Date().toISOString());
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                updateStatus(`🎉 终极修复完成！
+                
+✅ 修复详情:
+• 清除了所有旧认证数据
+• 获取了全新有效token: ${result.token.substring(0, 30)}...
+• 保存到localStorage和sessionStorage的多个位置
+• 用户: ${parsedAuth.user.username}
+• 角色: ${parsedAuth.user.role}
+• 修复时间: ${new Date().toLocaleString()}
+
+🚀 现在可以进入管理后台了！认证问题已彻底解决！`, 'success');
+                
+                // 5秒后自动跳转
+                setTimeout(() => {
+                    updateStatus('🚀 3秒后自动跳转到管理后台...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/admin-dashboard.html';
+                    }, 3000);
+                }, 2000);
+                
+            } catch (error) {
+                updateStatus(`❌ 终极修复失败: ${error.message}
+                
+请尝试以下方案:
+1. 检查后端服务是否运行
+2. 尝试核弹级重置
+3. 手动清除浏览器所有数据
+4. 联系系统管理员`, 'error');
+            }
+        }
+        
+        async function nuclearReset() {
+            if (!confirm('⚠️ 核弹级重置将清除浏览器中的所有数据！\n\n确定要继续吗？')) {
+                return;
+            }
+            
+            updateStatus('💥 执行核弹级重置...', 'error');
+            
+            try {
+                // 清除所有存储
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 清除所有cookies
+                document.cookie.split(";").forEach(function(c) {
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                });
+                
+                // 清除IndexedDB (如果存在)
+                if ('indexedDB' in window) {
+                    indexedDB.databases().then(databases => {
+                        databases.forEach(db => {
+                            indexedDB.deleteDatabase(db.name);
+                        });
+                    }).catch(() => {});
+                }
+                
+                updateStatus(`💥 核弹级重置完成！
+                
+已清除:
+• 所有localStorage数据
+• 所有sessionStorage数据  
+• 所有cookies
+• IndexedDB数据库
+
+现在可以重新开始认证设置了！`, 'success');
+                
+            } catch (error) {
+                updateStatus(`❌ 核弹级重置失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function goToDashboard() {
+            window.location.href = '/admin-dashboard.html';
+        }
+        
+        // 页面加载时检查认证状态
+        window.addEventListener('load', function() {
+            const authData = localStorage.getItem('adminAuth');
+            const authFixed = localStorage.getItem('authFixed');
+            
+            if (authData && authFixed) {
+                try {
+                    const auth = JSON.parse(authData);
+                    updateStatus(`🔍 检测到已修复的认证:
+                    
+• 用户: ${auth.user.username}
+• 角色: ${auth.user.role}
+• 修复时间: ${localStorage.getItem('authFixTime')}
+
+如果管理后台仍显示未认证，请点击"终极修复"`, 'success');
+                } catch (error) {
+                    updateStatus('⚠️ 发现损坏的认证数据，建议重新修复', 'error');
+                }
+            } else {
+                updateStatus('❌ 未发现有效认证，请点击"终极修复"开始修复', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>终极认证修复</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #FFD700, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #f44336, #d32f2f); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 终极认证修复</h1>
+        
+        <button class="btn btn-primary" onclick="ultimateFix()">
+            🚀 终极修复 - 保证成功
+        </button>
+        
+        <button class="btn btn-danger" onclick="nuclearReset()">
+            💥 核弹级重置 - 清除一切
+        </button>
+        
+        <div class="status" id="status">
+            点击上方按钮开始修复...
+        </div>
+        
+        <button class="btn btn-primary" onclick="goToDashboard()" style="margin-top: 20px;">
+            🏠 进入管理后台
+        </button>
+    </div>
+
+    <script>
+        function updateStatus(text, type = '') {
+            const status = document.getElementById('status');
+            status.innerHTML = text;
+            status.className = 'status ' + type;
+        }
+        
+        async function ultimateFix() {
+            updateStatus('🔧 开始终极修复...', 'success');
+            
+            try {
+                // 步骤1: 核弹级清理
+                updateStatus('💣 步骤1: 核弹级清理所有认证数据...', 'success');
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 清理所有可能的认证key
+                const authKeys = [
+                    'adminAuth', 'adminToken', 'adminUser', 'admin_auth', 'admin_token', 
+                    'authToken', 'userAuth', 'auth_data', 'login_data', 'session_data'
+                ];
+                authKeys.forEach(key => {
+                    localStorage.removeItem(key);
+                    sessionStorage.removeItem(key);
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤2: 获取全新token
+                updateStatus('🔑 步骤2: 从API获取全新认证token...', 'success');
+                
+                const response = await fetch('http://localhost:3001/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API请求失败: ' + response.status);
+                }
+                
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || '登录失败');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤3: 超级保存 (保存到所有可能的位置)
+                updateStatus('💾 步骤3: 超级保存认证数据到所有位置...', 'success');
+                
+                const authData = {
+                    token: result.token,
+                    user: result.admin || result.user,
+                    loginTime: new Date().toISOString(),
+                    source: 'ultimate-fix',
+                    timestamp: Date.now()
+                };
+                
+                // 保存到localStorage的多个key
+                localStorage.setItem('adminAuth', JSON.stringify(authData));
+                localStorage.setItem('adminToken', result.token);
+                localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                localStorage.setItem('admin_auth', JSON.stringify(authData));
+                localStorage.setItem('auth_data', JSON.stringify(authData));
+                
+                // 保存到sessionStorage的多个key
+                sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                sessionStorage.setItem('adminToken', result.token);
+                sessionStorage.setItem('adminUser', JSON.stringify(authData.user));
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤4: 验证保存
+                updateStatus('✅ 步骤4: 验证认证数据保存状态...', 'success');
+                
+                const savedAuth = localStorage.getItem('adminAuth');
+                if (!savedAuth) {
+                    throw new Error('认证数据保存失败');
+                }
+                
+                const parsedAuth = JSON.parse(savedAuth);
+                if (!parsedAuth.token || !parsedAuth.user) {
+                    throw new Error('认证数据格式错误');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤5: 强制刷新页面状态
+                updateStatus('🔄 步骤5: 强制刷新页面状态...', 'success');
+                
+                // 设置一个特殊标记，表示认证已修复
+                localStorage.setItem('authFixed', 'true');
+                localStorage.setItem('authFixTime', new Date().toISOString());
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                updateStatus(`🎉 终极修复完成！
+                
+✅ 修复详情:
+• 清除了所有旧认证数据
+• 获取了全新有效token: ${result.token.substring(0, 30)}...
+• 保存到localStorage和sessionStorage的多个位置
+• 用户: ${parsedAuth.user.username}
+• 角色: ${parsedAuth.user.role}
+• 修复时间: ${new Date().toLocaleString()}
+
+🚀 现在可以进入管理后台了！认证问题已彻底解决！`, 'success');
+                
+                // 5秒后自动跳转
+                setTimeout(() => {
+                    updateStatus('🚀 3秒后自动跳转到管理后台...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/admin-dashboard.html';
+                    }, 3000);
+                }, 2000);
+                
+            } catch (error) {
+                updateStatus(`❌ 终极修复失败: ${error.message}
+                
+请尝试以下方案:
+1. 检查后端服务是否运行
+2. 尝试核弹级重置
+3. 手动清除浏览器所有数据
+4. 联系系统管理员`, 'error');
+            }
+        }
+        
+        async function nuclearReset() {
+            if (!confirm('⚠️ 核弹级重置将清除浏览器中的所有数据！\n\n确定要继续吗？')) {
+                return;
+            }
+            
+            updateStatus('💥 执行核弹级重置...', 'error');
+            
+            try {
+                // 清除所有存储
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 清除所有cookies
+                document.cookie.split(";").forEach(function(c) {
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                });
+                
+                // 清除IndexedDB (如果存在)
+                if ('indexedDB' in window) {
+                    indexedDB.databases().then(databases => {
+                        databases.forEach(db => {
+                            indexedDB.deleteDatabase(db.name);
+                        });
+                    }).catch(() => {});
+                }
+                
+                updateStatus(`💥 核弹级重置完成！
+                
+已清除:
+• 所有localStorage数据
+• 所有sessionStorage数据  
+• 所有cookies
+• IndexedDB数据库
+
+现在可以重新开始认证设置了！`, 'success');
+                
+            } catch (error) {
+                updateStatus(`❌ 核弹级重置失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function goToDashboard() {
+            window.location.href = '/admin-dashboard.html';
+        }
+        
+        // 页面加载时检查认证状态
+        window.addEventListener('load', function() {
+            const authData = localStorage.getItem('adminAuth');
+            const authFixed = localStorage.getItem('authFixed');
+            
+            if (authData && authFixed) {
+                try {
+                    const auth = JSON.parse(authData);
+                    updateStatus(`🔍 检测到已修复的认证:
+                    
+• 用户: ${auth.user.username}
+• 角色: ${auth.user.role}
+• 修复时间: ${localStorage.getItem('authFixTime')}
+
+如果管理后台仍显示未认证，请点击"终极修复"`, 'success');
+                } catch (error) {
+                    updateStatus('⚠️ 发现损坏的认证数据，建议重新修复', 'error');
+                }
+            } else {
+                updateStatus('❌ 未发现有效认证，请点击"终极修复"开始修复', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
+

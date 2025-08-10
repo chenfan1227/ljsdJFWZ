@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分宝 - 管理后台登录</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .checkbox {
+            margin-right: 8px;
+        }
+        
+        .checkbox-label {
+            color: #666;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .error-message {
+            background: #ffe6e6;
+            color: #d63031;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .success-message {
+            background: #e8f5e8;
+            color: #00b894;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <div class="logo-icon">🛡️</div>
+            <h1>积分宝</h1>
+            <p>管理后台系统</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="username">管理员账号</label>
+                <input type="text" id="username" class="form-input" placeholder="请输入管理员账号" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">密码</label>
+                <input type="password" id="password" class="form-input" placeholder="请输入密码" required>
+            </div>
+            
+            <div class="remember-me">
+                <input type="checkbox" id="rememberMe" class="checkbox">
+                <label for="rememberMe" class="checkbox-label">记住登录状态</label>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                <span class="loading" id="loading"></span>
+                登录管理后台
+            </button>
+        </form>
+        
+        <div class="forgot-password">
+            <a href="#" onclick="showForgotPassword()">忘记密码？</a>
+        </div>
+    </div>
+    
+    <div class="footer">
+        © 2024 积分宝管理系统 - 安全可靠的后台管理解决方案
+    </div>
+
+    <script>
+        // 默认管理员账号（实际使用时应该从数据库验证）
+        const adminCredentials = {
+            'admin': {
+                password: 'admin123',
+                name: '超级管理员',
+                role: 'super_admin'
+            },
+            'manager': {
+                password: 'manager123',
+                name: '运营经理',
+                role: 'manager'
+            },
+            'operator': {
+                password: 'operator123',
+                name: '运营专员',
+                role: 'operator'
+            }
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            // 显示加载状态
+            showLoading(true);
+            
+            // 模拟API调用延迟
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            try {
+                const result = await authenticateUser(username, password);
+                
+                if (result.success) {
+                    showSuccessMessage('登录成功！正在跳转...');
+                    
+                    // 保存登录状态
+                    const authData = {
+                        username: username,
+                        name: result.user.name,
+                        role: result.user.role,
+                        loginTime: new Date().toISOString(),
+                        token: generateToken()
+                    };
+                    
+                    if (rememberMe) {
+                        localStorage.setItem('adminAuth', JSON.stringify(authData));
+                    } else {
+                        sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                    }
+                    
+                    // 延迟跳转到管理后台
+                    setTimeout(() => {
+                        window.location.href = 'admin-dashboard.html';
+                    }, 1500);
+                    
+                } else {
+                    showErrorMessage(result.message);
+                }
+                
+            } catch (error) {
+                showErrorMessage('登录失败，请稍后重试');
+            } finally {
+                showLoading(false);
+            }
+        });
+        
+        // 用户认证函数
+        async function authenticateUser(username, password) {
+            // 在实际应用中，这里应该调用后端API
+            if (adminCredentials[username] && adminCredentials[username].password === password) {
+                return {
+                    success: true,
+                    user: adminCredentials[username]
+                };
+            } else {
+                return {
+                    success: false,
+                    message: '用户名或密码错误'
+                };
+            }
+        }
+        
+        // 生成简单的token（实际使用JWT）
+        function generateToken() {
+            return 'token_' + Math.random().toString(36).substr(2) + Date.now().toString(36);
+        }
+        
+        // 显示错误消息
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // 显示成功消息
+        function showSuccessMessage(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+        
+        // 显示/隐藏加载状态
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (show) {
+                loading.style.display = 'inline-block';
+                loginBtn.disabled = true;
+                loginBtn.textContent = '登录中...';
+                loginBtn.prepend(loading);
+            } else {
+                loading.style.display = 'none';
+                loginBtn.disabled = false;
+                loginBtn.textContent = '登录管理后台';
+            }
+        }
+        
+        // 忘记密码
+        function showForgotPassword() {
+            alert('忘记密码功能\n\n默认测试账号：\n\n管理员: admin / admin123\n经理: manager / manager123\n专员: operator / operator123\n\n如需重置密码，请联系系统管理员。');
+        }
+        
+        // 检查是否已经登录
+        function checkExistingAuth() {
+            const authData = localStorage.getItem('adminAuth') || sessionStorage.getItem('adminAuth');
+            
+            if (authData) {
+                try {
+                    const auth = JSON.parse(authData);
+                    // 检查token是否有效（这里简单检查，实际应该验证JWT）
+                    if (auth.token && auth.username) {
+                        showSuccessMessage('检测到已登录状态，正在跳转...');
+                        setTimeout(() => {
+                            window.location.href = 'admin-dashboard.html';
+                        }, 1000);
+                    }
+                } catch (error) {
+                    // 清除无效的认证数据
+                    localStorage.removeItem('adminAuth');
+                    sessionStorage.removeItem('adminAuth');
+                }
+            }
+        }
+        
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkExistingAuth();
+            
+            // 自动聚焦到用户名输入框
+            document.getElementById('username').focus();
+        });
+        
+        // 监听Enter键快速登录
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

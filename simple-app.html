@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分宝 - 简化版</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+        
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #e53935 100%);
+        }
+        
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status.info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid rgba(33, 150, 243, 0.5);
+        }
+        
+        .status.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        
+        .debug-info {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 积分宝</h1>
+        
+        <div id="status" class="status info">
+            检查系统状态中...
+        </div>
+        
+        <button class="btn" onclick="testLogin()">
+            🔑 测试登录功能
+        </button>
+        
+        <a href="/app-demo.html" class="btn">
+            🏠 返回主应用
+        </a>
+        
+        <a href="/logout.html" class="btn logout-btn">
+            🚪 退出登录
+        </a>
+        
+        <button class="btn" onclick="clearAllData()">
+            🗑️ 清除所有数据
+        </button>
+        
+        <button class="btn" onclick="showDebugInfo()">
+            🐛 显示调试信息
+        </button>
+        
+        <div class="debug-info" id="debugInfo">
+            <strong>🔍 系统信息:</strong><br>
+            <span id="systemInfo">正在检查...</span>
+        </div>
+    </div>
+
+    <script>
+        // 检查系统状态
+        function checkSystemStatus() {
+            const statusDiv = document.getElementById('status');
+            const debugDiv = document.getElementById('systemInfo');
+            
+            try {
+                // 检查localStorage
+                const hasUser = !!localStorage.getItem('currentUser');
+                const hasToken = !!localStorage.getItem('authToken');
+                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                
+                // 检查网络
+                const isOnline = navigator.onLine;
+                
+                let statusText = '';
+                if (hasUser || hasToken || isLoggedIn) {
+                    statusText = '✅ 检测到登录状态';
+                } else {
+                    statusText = '❌ 未登录状态';
+                }
+                
+                statusDiv.innerHTML = statusText;
+                statusDiv.className = 'status ' + (hasUser ? 'success' : 'info');
+                
+                // 调试信息
+                let debugText = '';
+                debugText += `网络状态: ${isOnline ? '在线' : '离线'}<br>`;
+                debugText += `localStorage 用户: ${hasUser ? '有' : '无'}<br>`;
+                debugText += `localStorage Token: ${hasToken ? '有' : '无'}<br>`;
+                debugText += `登录状态: ${isLoggedIn ? '是' : '否'}<br>`;
+                debugText += `页面URL: ${window.location.href}<br>`;
+                debugText += `用户代理: ${navigator.userAgent.substring(0, 50)}...<br>`;
+                
+                debugDiv.innerHTML = debugText;
+                
+            } catch (error) {
+                statusDiv.innerHTML = '❌ 系统检查失败: ' + error.message;
+                statusDiv.className = 'status info';
+            }
+        }
+        
+        // 测试登录功能
+        function testLogin() {
+            alert('登录测试功能\n\n这是一个简化版界面\n如果主界面有问题，可以使用这个页面进行基本操作');
+        }
+        
+        // 清除所有数据
+        function clearAllData() {
+            if (confirm('确定要清除所有本地数据吗？\n这将退出登录并清除所有缓存。')) {
+                // 清除localStorage
+                localStorage.clear();
+                
+                // 清除sessionStorage
+                sessionStorage.clear();
+                
+                // 清除cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                alert('✅ 所有数据已清除！');
+                
+                // 重新检查状态
+                setTimeout(checkSystemStatus, 500);
+            }
+        }
+        
+        // 显示调试信息
+        function showDebugInfo() {
+            let info = '🔍 详细调试信息:\n\n';
+            
+            info += 'localStorage 内容:\n';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                info += `- ${key}: ${value ? '有数据' : '空'}\n`;
+            }
+            
+            info += '\nsessionStorage 内容:\n';
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                info += `- ${key}: 有数据\n`;
+            }
+            
+            info += '\n窗口信息:\n';
+            info += `- 宽度: ${window.innerWidth}px\n`;
+            info += `- 高度: ${window.innerHeight}px\n`;
+            info += `- 在线状态: ${navigator.onLine}\n`;
+            
+            alert(info);
+        }
+        
+        // 页面加载时检查状态
+        window.addEventListener('load', function() {
+            checkSystemStatus();
+            
+            // 定期更新状态
+            setInterval(checkSystemStatus, 10000);
+        });
+        
+        // 网络状态变化时更新
+        window.addEventListener('online', checkSystemStatus);
+        window.addEventListener('offline', checkSystemStatus);
+    </script>
+</body>
+</html>

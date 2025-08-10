@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台登录</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        
+        .message.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+        
+        .message.info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid rgba(33, 150, 243, 0.5);
+        }
+        
+        .quick-login {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .quick-login h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #FFD700;
+        }
+        
+        .quick-btn {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🛡️ 管理后台</h1>
+            <p>积分宝管理系统</p>
+        </div>
+        
+        <div id="message" style="display: none;"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" name="username" placeholder="请输入用户名" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" placeholder="请输入密码" required>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                登录管理后台
+            </button>
+        </form>
+        
+        <div class="quick-login">
+            <h3>🚀 快速登录</h3>
+            <button class="quick-btn" onclick="quickLogin('admin', 'admin123')">
+                超级管理员 (admin/admin123)
+            </button>
+            <button class="quick-btn" onclick="quickLogin('manager', 'manager123')">
+                系统管理员 (manager/manager123)
+            </button>
+            <button class="quick-btn" onclick="quickLogin('operator', 'operator123')">
+                运营专员 (operator/operator123)
+            </button>
+        </div>
+        
+        <div class="debug-info" id="debugInfo">
+            <strong>🔍 系统状态:</strong><br>
+            <span id="systemStatus">检查中...</span>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://192.168.1.29:3001/api';
+        const API_BASE_FALLBACK = 'http://localhost:3001/api';
+        
+        // 显示消息
+        function showMessage(text, type = 'info') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        // 当前使用的API地址
+        let currentAPIBase = API_BASE;
+        
+        // 更新系统状态
+        async function updateSystemStatus() {
+            const statusSpan = document.getElementById('systemStatus');
+            statusSpan.innerHTML = '🔍 检查网络连接...';
+            
+            // 尝试主API地址
+            try {
+                const response = await fetch(`${API_BASE}/health`, { 
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    currentAPIBase = API_BASE;
+                    statusSpan.innerHTML = `
+                        ✅ 后端API: 正常运行<br>
+                        ✅ 服务器: ${API_BASE}<br>
+                        ✅ 状态: 可接受登录请求<br>
+                        📅 检查时间: ${new Date().toLocaleTimeString()}
+                    `;
+                    return;
+                }
+            } catch (error) {
+                console.log('主API连接失败，尝试备用地址...');
+            }
+            
+            // 尝试备用API地址
+            try {
+                const response = await fetch(`${API_BASE_FALLBACK}/health`, { 
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    currentAPIBase = API_BASE_FALLBACK;
+                    statusSpan.innerHTML = `
+                        ✅ 后端API: 正常运行 (备用地址)<br>
+                        ✅ 服务器: ${API_BASE_FALLBACK}<br>
+                        ✅ 状态: 可接受登录请求<br>
+                        📅 检查时间: ${new Date().toLocaleTimeString()}
+                    `;
+                    return;
+                }
+            } catch (error) {
+                console.log('备用API也连接失败');
+            }
+            
+            // 所有连接都失败
+            statusSpan.innerHTML = `
+                ❌ 后端API: 连接失败<br>
+                ❌ 主地址: ${API_BASE} ✖️<br>
+                ❌ 备用地址: ${API_BASE_FALLBACK} ✖️<br>
+                ⚠️ 建议: 检查后端服务是否运行<br>
+                📅 检查时间: ${new Date().toLocaleTimeString()}
+            `;
+        }
+        
+        // 快速登录
+        function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            performLogin(username, password);
+        }
+        
+        // 执行登录
+        async function performLogin(username, password) {
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = '登录中...';
+            
+            try {
+                showMessage('正在验证登录信息...', 'info');
+                
+                const response = await fetch(`${currentAPIBase}/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // 保存认证信息（与admin-dashboard.html兼容）
+                    const authData = {
+                        token: result.token,
+                        user: result.user,
+                        loginTime: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('adminAuth', JSON.stringify(authData));
+                    localStorage.setItem('adminToken', result.token); // 备用
+                    localStorage.setItem('adminUser', JSON.stringify(result.user)); // 备用
+                    
+                    showMessage(`登录成功！欢迎 ${result.user.username}`, 'success');
+                    
+                    // 2秒后跳转到管理后台
+                    setTimeout(() => {
+                        window.location.href = '/admin-dashboard.html';
+                    }, 2000);
+                    
+                } else {
+                    showMessage(result.error || '登录失败，请检查用户名和密码', 'error');
+                }
+                
+            } catch (error) {
+                console.error('登录请求失败:', error);
+                showMessage('网络连接失败，请检查后端服务是否运行', 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = '登录管理后台';
+            }
+        }
+        
+        // 表单提交处理
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                showMessage('请输入用户名和密码', 'error');
+                return;
+            }
+            
+            performLogin(username, password);
+        });
+        
+        // 页面加载时检查状态
+        window.addEventListener('load', function() {
+            // 检查是否已登录
+            const existingAuth = localStorage.getItem('adminAuth');
+            const existingToken = existingAuth ? JSON.parse(existingAuth).token : localStorage.getItem('adminToken');
+            if (existingToken) {
+                showMessage('检测到已有登录信息，正在验证...', 'info');
+                
+                // 验证token是否有效
+                fetch(`${currentAPIBase}/admin/verify`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${existingToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage('自动登录成功，即将跳转...', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/admin-dashboard.html';
+                        }, 1500);
+                    } else {
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminUser');
+                        showMessage('登录信息已过期，请重新登录', 'info');
+                    }
+                })
+                .catch(error => {
+                    console.error('Token验证失败:', error);
+                    showMessage('验证登录状态失败，请重新登录', 'info');
+                });
+            }
+            
+            // 更新系统状态
+            updateSystemStatus();
+            
+            // 定期更新状态
+            setInterval(updateSystemStatus, 30000);
+        });
+    </script>
+</body>
+</html>
+
+                    headers: {
+                        'Authorization': `Bearer ${existingToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage('自动登录成功，即将跳转...', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/admin-dashboard.html';
+                        }, 1500);
+                    } else {
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminUser');
+                        showMessage('登录信息已过期，请重新登录', 'info');
+                    }
+                })
+                .catch(error => {
+                    console.error('Token验证失败:', error);
+                    showMessage('验证登录状态失败，请重新登录', 'info');
+                });
+            }
+            
+            // 更新系统状态
+            updateSystemStatus();
+            
+            // 定期更新状态
+            setInterval(updateSystemStatus, 30000);
+        });
+    </script>
+</body>
+</html>

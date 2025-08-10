@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分宝 - 手机访问指南</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            border-radius: 10px;
+        }
+        
+        .url-box {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 18px;
+            word-break: break-all;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .step {
+            background: rgba(255,255,255,0.1);
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .step-number {
+            background: #ff6b6b;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .feature {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 10px 15px;
+            margin: 10px;
+            border-radius: 25px;
+            display: inline-block;
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        
+        .links {
+            margin-top: 30px;
+        }
+        
+        .link-button {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .link-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .admin-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 积分宝手机访问</h1>
+        
+        <div class="qr-container">
+            <div class="qr-placeholder">
+                扫描二维码<br>
+                快速访问<br>
+                📱<br>
+                <small>或手动输入下方网址</small>
+            </div>
+        </div>
+        
+        <h2>🌐 访问地址</h2>
+        
+        <div class="url-box">
+            http://192.168.1.29:8080/new-demo.html
+        </div>
+        
+        <div class="links">
+            <a href="http://192.168.1.29:8080/new-demo.html" class="link-button">
+                🎯 打开用户端
+            </a>
+            <a href="http://192.168.1.29:8080/admin-login.html" class="link-button admin-button">
+                🔐 管理员登录
+            </a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>📝 操作步骤</h2>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>确保网络连接</strong><br>
+            手机和Mac必须连接在同一个WiFi网络下
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>打开手机浏览器</strong><br>
+            Safari (iOS) 或 Chrome (Android) 都可以
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>输入访问地址</strong><br>
+            复制上方网址到浏览器地址栏
+        </div>
+        
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>添加到桌面</strong><br>
+            建议添加书签或保存到主屏幕，方便下次访问
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>✨ 功能特色</h2>
+        
+        <div class="feature">💰 免费现金奖励</div>
+        <div class="feature">🎬 观看视频赚积分</div>
+        <div class="feature">📱 下载应用获奖励</div>
+        <div class="feature">🎮 Roblox风格游戏</div>
+        <div class="feature">🎲 抽奖系统</div>
+        <div class="feature">💎 VIP会员系统</div>
+        <div class="feature">💰 加密货币提现</div>
+        <div class="feature">👥 邀请好友奖励</div>
+    </div>
+    
+    <div class="container">
+        <h2>🔐 管理员功能</h2>
+        <p>访问管理后台查看：</p>
+        <div class="feature">📊 AdMob收益统计</div>
+        <div class="feature">👥 用户管理</div>
+        <div class="feature">💰 收益报表</div>
+        <div class="feature">📈 数据分析</div>
+        
+        <p style="margin-top: 20px;">
+            <strong>默认管理员账号：</strong><br>
+            用户名：admin<br>
+            密码：admin123
+        </p>
+    </div>
+    
+    <div class="container">
+        <h2>❓ 无法访问？</h2>
+        
+        <div class="step">
+            <span class="step-number">!</span>
+            <strong>检查WiFi连接</strong><br>
+            确保手机和Mac在同一网络
+        </div>
+        
+        <div class="step">
+            <span class="step-number">!</span>
+            <strong>检查防火墙</strong><br>
+            Mac系统偏好设置 → 安全性与隐私 → 防火墙
+        </div>
+        
+        <div class="step">
+            <span class="step-number">!</span>
+            <strong>尝试其他浏览器</strong><br>
+            换用Safari、Chrome或Firefox
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; opacity: 0.8; font-size: 14px;">
+        <p>💡 如果您在Mac上看到这个页面，请在手机浏览器中输入相同的网址</p>
+        <p>🚀 积分宝 - 让赚钱变得简单有趣！</p>
+    </div>
+</body>
+</html>

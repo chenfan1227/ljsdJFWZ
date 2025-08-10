@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分宝</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 40px;
+            padding: 60px 30px 30px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-header {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+        
+        .app-logo {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .app-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        /* 主要内容区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 用户信息卡片 */
+        .user-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+        }
+        
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .user-points {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .vip-badge {
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        /* 2x2 功能按钮网格 */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-btn .icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .action-btn .text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            padding: 15px 10px;
+            margin-top: auto;
+        }
+        
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 80px;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .nav-btn.active {
+            background: rgba(102, 126, 234, 0.2);
+        }
+        
+        /* 个人资料页面样式 */
+        .profile-container {
+            padding: 20px;
+            max-width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            margin: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.3);
+            margin-bottom: 15px;
+            object-fit: cover;
+        }
+        
+        .profile-header h2 {
+            margin: 10px 0 5px 0;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .profile-email {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-item {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stat-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .profile-actions {
+            margin-bottom: 25px;
+        }
+        
+        .profile-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .profile-btn:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .profile-btn.logout-btn:hover {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+        
+        .profile-info h3 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .info-item {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .info-label {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+        
+        .info-value {
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .nav-btn .icon {
+            font-size: 1.5rem;
+        }
+        
+        .nav-btn .text {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        /* 登录模态框 */
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .login-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .google-btn {
+            background: #4285f4;
+            color: #fff;
+        }
+        
+        .apple-btn {
+            background: #000;
+            color: #fff;
+        }
+        
+        .guest-btn {
+            background: #f3f4f6;
+            color: #333;
+            border: 2px solid #667eea;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-message {
+            margin-top: 15px;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: none;
+        }
+        
+        .success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        /* 交易记录视图 */
+        .transaction-view {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-info .title {
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .transaction-info .time {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        
+        .transaction-amount {
+            font-weight: 700;
+            color: #22c55e;
+        }
+        
+        /* 隐藏状态 */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- App头部 -->
+        <div class="app-header">
+            <div class="app-logo">💎</div>
+            <div class="app-title">积分宝</div>
+            <div class="app-subtitle">App端登录演示</div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 用户信息卡片 -->
+            <div class="user-card">
+                <div class="user-avatar" id="userAvatar">👤</div>
+                <div class="user-name" id="userName">Demo Google用户</div>
+                <div class="user-points" id="userPoints">10,000</div>
+                <div class="vip-badge" id="vipBadge">普通会员</div>
+            </div>
+
+            <!-- 2x2 功能按钮网格 -->
+            <div class="action-grid">
+                <button class="action-btn" onclick="handleAction('video')">
+                    <span class="icon">☕</span>
+                    <span class="text">观看视频</span>
+                </button>
+                
+                <button class="action-btn" onclick="handleAction('app')">
+                    <span class="icon">📱</span>
+                    <span class="text">下载应用</span>
+                </button>
+                
+                <button class="action-btn" onclick="handleAction('checkin')">
+                    <span class="icon">📅</span>
+                    <span class="text">每日签到</span>
+                </button>
+                
+                <button class="action-btn" onclick="handleAction('refresh')">
+                    <span class="icon">🔄</span>
+                    <span class="text">刷新积分</span>
+                </button>
+            </div>
+
+            <!-- 交易记录视图 -->
+            <div class="transaction-view" id="transactionView">
+                <div class="section-title">最近交易记录</div>
+                <div id="transactionList">
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="title">注册奖励</div>
+                            <div class="time">2024/8/9 20:58:59</div>
+                        </div>
+                        <div class="transaction-amount">+10,000</div>
+                    </div>
+                    
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="title">观看视频</div>
+                            <div class="time">2024/8/9 19:30:20</div>
+                        </div>
+                        <div class="transaction-amount">+50,000</div>
+                    </div>
+                    
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="title">注册奖励</div>
+                            <div class="time">2024/8/9 18:00:00</div>
+                        </div>
+                        <div class="transaction-amount">+10,000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航（三个按钮） -->
+        <div class="bottom-nav">
+            <button class="nav-btn active" onclick="showHomeView()">
+                <span class="icon">🏠</span>
+                <span class="text">首页</span>
+            </button>
+            
+            <button class="nav-btn" onclick="showTransactionView()">
+                <span class="icon">📊</span>
+                <span class="text">记录</span>
+            </button>
+            
+            <button class="nav-btn" onclick="showProfileView()">
+                <span class="icon">👤</span>
+                <span class="text">我的</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-content">
+            <h3 class="login-title">选择登录方式</h3>
+            
+            <button class="login-btn google-btn" onclick="loginWithGoogle()">
+                <span>🔵</span>
+                使用 Google 登录
+            </button>
+            
+            <button class="login-btn apple-btn" onclick="loginWithApple()">
+                <span>🍎</span>
+                使用 Apple 登录
+            </button>
+            
+            <button class="login-btn guest-btn" onclick="loginAsGuest()">
+                <span>👤</span>
+                游客模式体验
+            </button>
+            
+            <div id="loginMessage" class="login-message"></div>
+        </div>
+    </div>
+
+    <!-- Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0/9.23.2/auth0.min.js"></script>
+    
+    <script>
+        const API_BASE = 'http://192.168.1.29:3001/api';
+        let currentUser = null;
+        let authToken = null;
+        let isLoggedIn = false;
+        let currentView = 'home';
+        let pointsConfig = null; // 积分配置
+        let admobConfig = null;  // AdMob配置
+        
+        // Auth0 配置
+        const auth0Config = {
+            domain: 'dev-pnok5gjc2y8dk2eb.us.auth0.com', // 替换为您的Auth0域名
+            clientId: 'wvn63LPmkjht4Pk3TYQpoc1HtpY94Wyz', // 替换为您的Auth0客户端ID
+            redirectUri: window.location.origin + '/app-demo.html',
+            responseType: 'token id_token',
+            scope: 'openid profile email',
+            nonce: 'nonce_' + Math.random().toString(36).substr(2, 15)
+        };
+        
+        // 初始化Auth0
+        let auth0;
+        let auth0InitializationAttempts = 0;
+        const maxInitAttempts = 3;
+        
+        function initializeAuth0() {
+            auth0InitializationAttempts++;
+            console.log(`🔄 Auth0初始化尝试 ${auth0InitializationAttempts}/${maxInitAttempts}`);
+            
+            try {
+                // 检查Auth0 SDK是否已加载
+                if (typeof Auth0 === 'undefined') {
+                    console.error('❌ Auth0 SDK未加载');
+                    if (auth0InitializationAttempts < maxInitAttempts) {
+                        console.log('⏳ 等待Auth0 SDK加载...');
+                        setTimeout(initializeAuth0, 1000);
+                        return;
+                    } else {
+                        console.error('❌ Auth0 SDK加载失败，尝试次数已达上限');
+                        return;
+                    }
+                }
+                
+                console.log('✅ Auth0 SDK已加载');
+                console.log('Auth0版本:', Auth0.version || 'unknown');
+                
+                auth0 = new Auth0.WebAuth(auth0Config);
+                console.log('✅ Auth0初始化成功', auth0Config);
+                console.log('Auth0对象类型:', typeof auth0);
+                
+            } catch (error) {
+                console.error('❌ Auth0初始化失败:', error);
+                if (auth0InitializationAttempts < maxInitAttempts) {
+                    console.log('⏳ 重试Auth0初始化...');
+                    setTimeout(initializeAuth0, 1000);
+                } else {
+                    console.error('❌ Auth0初始化最终失败');
+                }
+            }
+        }
+        
+        // 延迟初始化，确保SDK完全加载
+        setTimeout(initializeAuth0, 500);
+
+        // 页面加载时设置初始状态
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否有Auth0回调
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+                handleAuth0Callback();
+            } else {
+                // 检查是否已经登录
+                checkExistingAuth();
+            }
+            
+            checkServerConnection();
+            showHomeView();
+        });
+
+        // 检查现有认证状态
+        function checkExistingAuth() {
+            console.log('🔍 检查现有认证状态...');
+            console.log('Auth0配置:', auth0Config);
+            
+            const token = localStorage.getItem('auth0_token');
+            const userProfile = localStorage.getItem('user_profile');
+            
+            if (token && userProfile) {
+                try {
+                    currentUser = JSON.parse(userProfile);
+                    authToken = token;
+                    isLoggedIn = true;
+                    updateUserInterface();
+                    console.log('✅ 已恢复登录状态:', currentUser.name);
+                } catch (error) {
+                    console.error('❌ 解析用户信息失败:', error);
+                    logout();
+                }
+            } else {
+                console.log('ℹ️ 未找到现有登录状态');
+                updateUIForLoggedOut();
+            }
+        }
+
+        // 更新UI为未登录状态
+        function updateUIForLoggedOut() {
+            document.getElementById('userName').textContent = '点击开始赚钱';
+            document.getElementById('userPoints').textContent = '0';
+            document.getElementById('vipBadge').textContent = '新用户';
+            document.getElementById('userAvatar').textContent = '👤';
+            isLoggedIn = false;
+            currentUser = null;
+            authToken = null;
+        }
+
+        // 显示首页视图
+        function showHomeView() {
+            currentView = 'home';
+            document.querySelector('.user-card').style.display = 'block';
+            document.querySelector('.action-grid').style.display = 'grid';
+            document.getElementById('transactionView').style.display = 'none';
+            updateNavActive('home');
+        }
+
+        // 显示交易记录视图
+        function showTransactionView() {
+            if (!isLoggedIn) {
+                sessionStorage.setItem('pendingAction', 'showTransaction');
+                startAuth0Login();
+                return;
+            }
+            currentView = 'transaction';
+            document.querySelector('.user-card').style.display = 'none';
+            document.querySelector('.action-grid').style.display = 'none';
+            document.getElementById('transactionView').style.display = 'block';
+            updateNavActive('transaction');
+            loadTransactionHistory();
+        }
+
+        // 显示个人资料视图
+        function showProfileView() {
+            console.log('🔍 showProfileView 被调用');
+            console.log('isLoggedIn:', isLoggedIn);
+            console.log('currentUser:', currentUser);
+            
+            // 检查用户登录状态
+            if (!isLoggedIn || !currentUser) {
+                console.log('❌ 用户未登录，显示登录对话框');
+                sessionStorage.setItem('pendingAction', 'showProfileView');
+                showLoginModal();
+                return;
+            }
+            
+            console.log('✅ 用户已登录，显示个人资料页面');
+            
+            // 隐藏主页内容
+            const userCard = document.querySelector('.user-card');
+            const actionGrid = document.querySelector('.action-grid');
+            const transactionView = document.getElementById('transactionView');
+            
+            if (userCard) userCard.style.display = 'none';
+            if (actionGrid) actionGrid.style.display = 'none';
+            if (transactionView) transactionView.style.display = 'none';
+            
+            currentView = 'profile';
+            updateNavActive('profile');
+            
+            // 确保用户数据完整
+            const userPoints = currentUser.points || 0;
+            const userName = currentUser.name || currentUser.nickname || '用户';
+            const userEmail = currentUser.email || '未绑定邮箱';
+            const userAvatar = currentUser.avatar || currentUser.picture || '👤';
+            const userId = currentUser.id || currentUser.sub || 'unknown';
+            
+            const profileHTML = `
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <img src="${userAvatar}" alt="头像" class="profile-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div style="display:none; width:80px; height:80px; border-radius:50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 15px;">👤</div>
+                        <h2>${userName}</h2>
+                        <p class="profile-email">${userEmail}</p>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">当前积分</span>
+                            <span class="stat-value">${userPoints.toLocaleString()}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">会员等级</span>
+                            <span class="stat-value">${currentUser.is_vip ? 'VIP会员' : '普通会员'}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">注册时间</span>
+                            <span class="stat-value">${new Date().toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="profile-btn edit-btn" onclick="editProfile()">
+                            <span class="icon">✏️</span>
+                            编辑资料
+                        </button>
+                        <button class="profile-btn settings-btn" onclick="showSettings()">
+                            <span class="icon">⚙️</span>
+                            账户设置
+                        </button>
+                        <button class="profile-btn history-btn" onclick="showTransactionView()">
+                            <span class="icon">📊</span>
+                            积分记录
+                        </button>
+                        <button class="profile-btn logout-btn" onclick="logoutUser()">
+                            <span class="icon">🚪</span>
+                            退出登录
+                        </button>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <h3>账户信息</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">用户ID</span>
+                                <span class="info-value">${userId.substring(0, 12)}...</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">绑定邮箱</span>
+                                <span class="info-value">${userEmail}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">注册方式</span>
+                                <span class="info-value">Auth0登录</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">账户状态</span>
+                                <span class="info-value" style="color: #4CAF50;">✅ 正常</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.querySelector('.content').innerHTML = profileHTML;
+            console.log('✅ 个人资料页面已渲染');
+        }
+
+        // 更新导航按钮状态
+        function updateNavActive(activeView) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            if (activeView === 'home') {
+                document.querySelectorAll('.nav-btn')[0].classList.add('active');
+            } else if (activeView === 'transaction') {
+                document.querySelectorAll('.nav-btn')[1].classList.add('active');
+            }
+        }
+
+        // 处理动作按钮点击
+        function handleAction(action) {
+            if (!isLoggedIn) {
+                // 保存待执行的操作
+                sessionStorage.setItem('pendingAction', 'action:' + action);
+                // 直接启动Auth0登录，不显示模态框
+                startAuth0Login();
+                return;
+            }
+
+            // 映射旧动作名到新动作名
+            let newAction = action;
+            switch(action) {
+                case 'video':
+                    newAction = 'watch_video';
+                    break;
+                case 'app':
+                    newAction = 'download_app';
+                    break;
+                case 'checkin':
+                    newAction = 'daily_checkin';
+                    break;
+                case 'refresh':
+                    refreshPoints();
+                    return;
+            }
+            
+            executeAction(newAction);
+        }
+        
+        // 执行积分操作
+        async function executeAction(action) {
+            console.log(`🎯 执行操作: ${action}`);
+            
+            // 从后端配置获取积分信息
+            const actionConfig = getPointsForAction(action);
+            const actionText = actionConfig.name || '未知操作';
+            const points = actionConfig.points || 0;
+            
+            if (points === 0) {
+                showMessage(`操作 ${actionText} 暂不可用或未配置积分！`, 'error');
+                return;
+            }
+            
+            // 检查每日限制
+            const dailyLimit = actionConfig.daily_limit || 999;
+            const todayActionCount = getTodayActionCount(action);
+            
+            if (todayActionCount >= dailyLimit) {
+                showMessage(`今日 ${actionText} 次数已达上限 (${dailyLimit}次)！`, 'warning');
+                return;
+            }
+            
+            // 执行操作逻辑
+            let success = false;
+            switch(action) {
+                case 'watch_video':
+                    success = await simulateVideoWatch();
+                    break;
+                case 'download_app':
+                    success = await simulateAppDownload();
+                    break;
+                case 'daily_checkin':
+                    success = await simulateDailyCheckin();
+                    break;
+                case 'complete_task':
+                    success = await simulateTaskCompletion();
+                    break;
+                case 'invite_friend':
+                    success = await simulateInviteFriend();
+                    break;
+                default:
+                    // 使用旧的函数作为备选
+                    switch(action) {
+                        case 'watch_video':
+                            earnFromVideo();
+                            success = true;
+                            break;
+                        case 'download_app':
+                            earnFromApp();
+                            success = true;
+                            break;
+                        case 'daily_checkin':
+                            dailyCheckin();
+                            success = true;
+                            break;
+                        default:
+                            console.warn(`未知操作: ${action}`);
+                            return;
+                    }
+            }
+            
+            if (!success) {
+                showMessage(`${actionText} 执行失败，请重试！`, 'error');
+                return;
+            }
+            
+            // 更新积分
+            currentUser.points = (currentUser.points || 0) + points;
+            
+            // 保存到localStorage
+            localStorage.setItem('user_profile', JSON.stringify(currentUser));
+            
+            // 更新UI
+            updateUserInterface();
+            
+            // 显示奖励动画
+            showRewardAnimation(points);
+            
+            // 记录积分历史
+            const transaction = {
+                id: Date.now(),
+                action: action,
+                action_text: actionText,
+                points: points,
+                timestamp: new Date().toISOString(),
+                type: 'earn'
+            };
+            
+            addTransactionRecord(transaction);
+            
+            // 更新每日操作计数
+            updateTodayActionCount(action);
+            
+            console.log(`✅ ${actionText} 完成，获得 ${points} 积分`);
+        }
+        
+        // 模拟操作执行函数
+        async function simulateVideoWatch() {
+            return new Promise(resolve => {
+                showMessage('正在加载视频广告...', 'info');
+                setTimeout(() => {
+                    showMessage('视频播放完成！', 'success');
+                    resolve(true);
+                }, 2000);
+            });
+        }
+        
+        async function simulateAppDownload() {
+            return new Promise(resolve => {
+                showMessage('正在跳转应用商店...', 'info');
+                setTimeout(() => {
+                    showMessage('应用下载验证成功！', 'success');
+                    resolve(true);
+                }, 1500);
+            });
+        }
+        
+        async function simulateTaskCompletion() {
+            return new Promise(resolve => {
+                showMessage('正在验证任务完成状态...', 'info');
+                setTimeout(() => {
+                    showMessage('任务验证成功！', 'success');
+                    resolve(true);
+                }, 1000);
+            });
+        }
+        
+        async function simulateDailyCheckin() {
+            return new Promise(resolve => {
+                showMessage('正在执行签到...', 'info');
+                setTimeout(() => {
+                    showMessage('签到成功！', 'success');
+                    resolve(true);
+                }, 800);
+            });
+        }
+        
+        async function simulateInviteFriend() {
+            return new Promise(resolve => {
+                showMessage('正在生成邀请链接...', 'info');
+                setTimeout(() => {
+                    showMessage('邀请链接已生成！', 'success');
+                    resolve(true);
+                }, 1200);
+            });
+        }
+        
+        // 获取今日操作次数
+        function getTodayActionCount(action) {
+            const today = new Date().toDateString();
+            const key = `action_count_${action}_${today}`;
+            return parseInt(localStorage.getItem(key)) || 0;
+        }
+        
+        // 更新今日操作次数
+        function updateTodayActionCount(action) {
+            const today = new Date().toDateString();
+            const key = `action_count_${action}_${today}`;
+            const count = getTodayActionCount(action) + 1;
+            localStorage.setItem(key, count);
+        }
+
+        // 启动Auth0登录流程（默认Google登录）
+        function startAuth0Login() {
+            console.log('🚀 直接启动Auth0登录流程...');
+            console.log('Auth0配置:', auth0Config);
+            console.log('Auth0对象:', typeof auth0, auth0);
+            
+            // 检查Auth0是否已初始化
+            if (!auth0) {
+                console.warn('⚠️ Auth0对象未初始化，尝试重新初始化...');
+                
+                // 尝试立即重新初始化
+                initializeAuth0();
+                
+                // 等待一秒后再次检查
+                setTimeout(() => {
+                    if (!auth0) {
+                        console.error('❌ Auth0初始化失败，使用备用方案');
+                        tryDirectRedirect();
+                    } else {
+                        // 成功初始化后继续登录流程
+                        startAuth0Login();
+                    }
+                }, 1500);
+                return;
+            }
+            
+            // 检查Auth0 SDK全局对象
+            if (typeof Auth0 === 'undefined') {
+                console.error('❌ Auth0 SDK未加载，使用直接跳转到Auth0');
+                tryDirectRedirect();
+                return;
+            }
+            
+            try {
+                console.log('📡 调用auth0.authorize...');
+                auth0.authorize({
+                    connection: 'google-oauth2'
+                });
+                console.log('✅ authorize调用完成，等待跳转...');
+                
+                // 设置一个超时检查，如果5秒后还在当前页面，说明可能有问题
+                setTimeout(() => {
+                    console.warn('⚠️ 5秒后仍在当前页面，可能Auth0跳转失败');
+                    // 尝试直接构造URL跳转
+                    tryDirectRedirect();
+                }, 5000);
+                
+            } catch (error) {
+                console.error('❌ Auth0登录启动失败:', error);
+                alert('Auth0登录失败: ' + error.message);
+                // 如果Auth0失败，则回退到显示登录选择
+                showLoginModal();
+            }
+        }
+        
+        // 尝试直接构造Auth0 URL进行跳转
+        function tryDirectRedirect() {
+            console.log('🔄 尝试直接URL跳转...');
+            try {
+                const loginUrl = `https://${auth0Config.domain}/authorize?` +
+                    `response_type=${auth0Config.responseType}&` +
+                    `client_id=${auth0Config.clientId}&` +
+                    `redirect_uri=${encodeURIComponent(auth0Config.redirectUri)}&` +
+                    `scope=${encodeURIComponent(auth0Config.scope)}&` +
+                    `connection=google-oauth2&` +
+                    `nonce=${auth0Config.nonce}`;
+                
+                console.log('🌐 跳转URL:', loginUrl);
+                
+                // 强制跳转到Auth0，不进行域名测试
+                console.log('🚀 直接跳转到Auth0登录页面');
+                window.location.href = loginUrl;
+                    
+            } catch (error) {
+                console.error('❌ 直接跳转也失败:', error);
+                simulateAuth0Login();
+            }
+        }
+        
+        // 模拟Auth0登录（用于测试）
+        function simulateAuth0Login() {
+            console.log('🧪 启动模拟Auth0登录流程...');
+            
+            // 模拟用户数据
+            const mockUser = {
+                sub: 'auth0|mock_' + Date.now(),
+                email: 'test@example.com',
+                name: 'Test User',
+                picture: 'https://via.placeholder.com/64'
+            };
+            
+            // 模拟Auth0回调数据
+            const mockAuth = {
+                access_token: 'mock_access_token_' + Date.now(),
+                id_token: 'mock_id_token_' + Date.now(),
+                expires_in: 86400,
+                token_type: 'Bearer'
+            };
+            
+            console.log('✅ 模拟登录成功，处理用户数据...');
+            
+            // 设置用户数据
+            currentUser = {
+                id: mockUser.sub,
+                name: mockUser.name,
+                email: mockUser.email,
+                avatar: mockUser.picture,
+                points: 0
+            };
+            
+            authToken = mockAuth.access_token;
+            isLoggedIn = true;
+            
+            // 存储到localStorage
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            localStorage.setItem('authToken', authToken);
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            // 同步到后端
+            syncUserToBackend(mockUser, mockAuth.access_token);
+            
+            // 更新UI
+            updateUserInfo();
+            hideLoginModal();
+            showMessage('模拟登录成功！', 'success');
+            
+            // 执行待定操作
+            const pendingAction = sessionStorage.getItem('pendingAction');
+            if (pendingAction) {
+                sessionStorage.removeItem('pendingAction');
+                console.log('执行待定操作:', pendingAction);
+                
+                setTimeout(() => {
+                    if (pendingAction.startsWith('action:')) {
+                        handleAction(pendingAction.replace('action:', ''));
+                    } else if (pendingAction === 'showTransactionView') {
+                        showTransactionView();
+                    } else if (pendingAction === 'showProfileView') {
+                        showProfileView();
+                    }
+                }, 1000);
+            }
+        }
+
+        // 显示登录模态框
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'flex';
+            showMessage('请先登录开始赚钱', 'error');
+        }
+
+        // 隐藏登录模态框
+        function hideLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        // 显示消息
+        function showMessage(message, type = 'success') {
+            const element = document.getElementById('loginMessage');
+            element.textContent = message;
+            element.className = `login-message ${type}`;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+
+        // Google登录 - 使用Auth0
+        function loginWithGoogle() {
+            console.log('🔵 启动Google登录...');
+            showMessage('正在连接Google...', 'success');
+            try {
+                auth0.authorize({
+                    connection: 'google-oauth2'
+                });
+            } catch (error) {
+                console.error('❌ Google登录启动失败:', error);
+                showMessage('Google登录启动失败: ' + error.message, 'error');
+            }
+        }
+
+        // Apple登录 - 使用Auth0
+        function loginWithApple() {
+            console.log('🍎 启动Apple登录...');
+            showMessage('正在连接Apple...', 'success');
+            try {
+                auth0.authorize({
+                    connection: 'apple'
+                });
+            } catch (error) {
+                console.error('❌ Apple登录启动失败:', error);
+                showMessage('Apple登录启动失败: ' + error.message, 'error');
+            }
+        }
+
+        // 游客登录 - 数据库连接
+        function loginAsGuest() {
+            console.log('👤 启动游客登录...');
+            showMessage('正在以游客身份登录...', 'success');
+            try {
+                auth0.authorize({
+                    connection: 'Username-Password-Authentication',
+                    login_hint: 'guest_mode'
+                });
+            } catch (error) {
+                console.error('❌ 游客登录启动失败:', error);
+                showMessage('游客登录启动失败: ' + error.message, 'error');
+            }
+        }
+
+        // Auth0回调处理
+        function handleAuth0Callback() {
+            auth0.parseHash((err, authResult) => {
+                if (authResult && authResult.accessToken && authResult.idToken) {
+                    // 登录成功
+                    auth0.client.userInfo(authResult.accessToken, (err, profile) => {
+                        if (err) {
+                            showMessage('获取用户信息失败', 'error');
+                            return;
+                        }
+                        
+                        // 设置用户信息
+                        currentUser = {
+                            id: profile.sub,
+                            name: profile.name || profile.nickname,
+                            email: profile.email,
+                            avatar: profile.picture || '👤',
+                            points: 0
+                        };
+                        authToken = authResult.accessToken;
+                        isLoggedIn = true;
+                        
+                        // 存储到localStorage
+                        localStorage.setItem('auth0_token', authResult.accessToken);
+                        localStorage.setItem('auth0_id_token', authResult.idToken);
+                        localStorage.setItem('user_profile', JSON.stringify(currentUser));
+                        
+                        hideLoginModal();
+                        updateUserInterface();
+                        showMessage('登录成功！', 'success');
+                        
+                        // 执行待处理的操作
+                        const pendingAction = sessionStorage.getItem('pendingAction');
+                        if (pendingAction) {
+                            sessionStorage.removeItem('pendingAction');
+                            setTimeout(() => {
+                                if (pendingAction === 'showTransaction') {
+                                    showTransactionView();
+                                } else if (pendingAction === 'showProfile') {
+                                    showProfileView();
+                                } else {
+                                    handleAction(pendingAction);
+                                }
+                            }, 500);
+                        }
+                        
+                        // 同步用户信息到后端
+                        syncUserToBackend(currentUser, authResult.accessToken);
+                        
+                        // 加载后端配置
+                        setTimeout(() => {
+                            loadPointsConfig();
+                            loadAdMobConfig();
+                        }, 1000);
+                    });
+                } else if (err) {
+                    console.error('Auth0登录错误:', err);
+                    showMessage(`登录失败: ${err.error_description || err.error}`, 'error');
+                }
+            });
+        }
+
+        // 同步用户信息到后端
+        async function syncUserToBackend(user, token) {
+            try {
+                const response = await fetch(`${API_BASE}/auth/auth0-sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        auth0_id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        avatar: user.avatar
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    // 更新用户积分信息
+                    currentUser.points = result.data.points || 0;
+                    updateUserInterface();
+                }
+            } catch (error) {
+                console.error('同步用户信息失败:', error);
+            }
+        }
+
+        // 执行社交登录
+        async function performSocialLogin(socialUser) {
+            try {
+                showMessage('正在登录...', 'success');
+                
+                const response = await fetch(`${API_BASE}/auth/social-login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(socialUser)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('登录结果:', result);
+                
+                if (result.success) {
+                    currentUser = result.data.user;
+                    authToken = result.data.token;
+                    isLoggedIn = true;
+                    
+                    showMessage(result.message || '登录成功！', 'success');
+                    
+                    setTimeout(() => {
+                        hideLoginModal();
+                        updateUserInterface();
+                        
+                        const pendingAction = sessionStorage.getItem('pendingAction');
+                        if (pendingAction) {
+                            sessionStorage.removeItem('pendingAction');
+                            setTimeout(() => handleAction(pendingAction), 500);
+                        }
+                    }, 1000);
+                } else {
+                    showMessage(result.error || '登录失败', 'error');
+                }
+            } catch (error) {
+                console.error('登录失败:', error);
+                showMessage(`登录失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新用户界面
+        function updateUserInterface() {
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.nickname || currentUser.name;
+                document.getElementById('userPoints').textContent = (currentUser.points || 0).toLocaleString();
+                document.getElementById('vipBadge').textContent = currentUser.is_vip ? 'VIP会员' : '普通用户';
+                document.getElementById('userAvatar').textContent = currentUser.avatar || '👤';
+            }
+        }
+
+        // 观看视频赚积分
+        async function earnFromVideo() {
+            try {
+                const response = await fetch(`${API_BASE}/app/earn/watch-video`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser.points += result.data.points_earned;
+                    updateUserInterface();
+                    alert(`观看视频完成！获得 ${result.data.points_earned} 积分`);
+                } else {
+                    alert(result.error || '操作失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 下载应用赚积分
+        async function earnFromApp() {
+            try {
+                const response = await fetch(`${API_BASE}/app/earn/download-app`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        app_name: 'Demo应用',
+                        app_id: 'demo_app_001'
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser.points += result.data.points_earned;
+                    updateUserInterface();
+                    alert(`下载应用完成！获得 ${result.data.points_earned} 积分`);
+                } else {
+                    alert(result.error || '操作失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 每日签到
+        async function dailyCheckin() {
+            try {
+                const response = await fetch(`${API_BASE}/app/earn/daily-checkin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser.points += result.data.points_earned;
+                    updateUserInterface();
+                    alert(`每日签到完成！获得 ${result.data.points_earned} 积分`);
+                } else {
+                    alert(result.error || '操作失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 刷新积分
+        async function refreshPoints() {
+            try {
+                const response = await fetch(`${API_BASE}/app/user/points`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser.points = result.data.points;
+                    updateUserInterface();
+                    alert('积分已刷新');
+                } else {
+                    alert(result.error || '刷新失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 加载交易记录
+        async function loadTransactionHistory() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/app/user/transactions`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success && result.data.length > 0) {
+                    const listElement = document.getElementById('transactionList');
+                    listElement.innerHTML = '';
+                    
+                    result.data.forEach(transaction => {
+                        const item = document.createElement('div');
+                        item.className = 'transaction-item';
+                        item.innerHTML = `
+                            <div class="transaction-info">
+                                <div class="title">${getTransactionTypeName(transaction.transaction_type)}</div>
+                                <div class="time">${new Date(transaction.created_at).toLocaleString()}</div>
+                            </div>
+                            <div class="transaction-amount">+${transaction.points_change.toLocaleString()}</div>
+                        `;
+                        listElement.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                console.error('加载交易记录失败:', error);
+            }
+        }
+
+        // 获取交易类型名称
+        function getTransactionTypeName(type) {
+            const types = {
+                'registration_bonus': '注册奖励',
+                'watch_video': '观看视频',
+                'download_app': '下载应用',
+                'daily_checkin': '每日签到',
+                'admin_adjust': '管理员调整'
+            };
+            return types[type] || type;
+        }
+
+        // 退出登录 - Auth0版本
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                console.log('🚪 用户退出登录');
+                
+                // 清除所有本地存储
+                localStorage.removeItem('auth0_token');
+                localStorage.removeItem('auth0_id_token');
+                localStorage.removeItem('user_profile');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('isLoggedIn');
+                sessionStorage.clear();
+                
+                // 重置状态
+                currentUser = null;
+                authToken = null;
+                isLoggedIn = false;
+                
+                // 显示退出消息
+                showMessage('正在退出登录...', 'info');
+                
+                // 更新UI
+                updateUIForLoggedOut();
+                
+                // Auth0退出登录
+                if (auth0) {
+                    try {
+                        auth0.logout({
+                            returnTo: window.location.origin + '/app-demo.html',
+                            clientID: auth0Config.clientId
+                        });
+                    } catch (error) {
+                        console.error('Auth0退出失败:', error);
+                        // 如果Auth0退出失败，直接刷新页面
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                } else {
+                    // 没有Auth0，直接刷新页面
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }
+        }
+        
+        // 退出登录的别名函数
+        function logoutUser() {
+            logout();
+        }
+        
+        // 编辑资料功能
+        function editProfile() {
+            alert('编辑资料功能正在开发中，敬请期待！\n\n将来可以修改:\n- 用户名\n- 头像\n- 个人简介');
+        }
+        
+        // 账户设置功能
+        function showSettings() {
+            alert('账户设置功能正在开发中，敬请期待！\n\n将来可以设置:\n- 通知偏好\n- 隐私设置\n- 安全设置');
+        }
+
+        // 检查服务器连接
+        async function checkServerConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    console.log('✅ 后台API服务器连接正常');
+                }
+            } catch (error) {
+                console.error('❌ 无法连接到后台API服务器');
+            }
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideLoginModal();
+            }
+        });
+        
+        // 调试函数
+        function showDebugInfo() {
+            const debugInfo = [
+                `🔍 Auth0调试信息:`,
+                ``,
+                `Auth0 SDK: ${typeof Auth0 !== 'undefined' ? '✅ 已加载' : '❌ 未加载'}`,
+                `Auth0对象: ${auth0 ? '✅ 已初始化' : '❌ 未初始化'}`,
+                `登录状态: ${isLoggedIn ? '✅ 已登录' : '❌ 未登录'}`,
+                `当前用户: ${currentUser ? currentUser.name : '无'}`,
+                `Domain: ${auth0Config.domain}`,
+                `Client ID: ${auth0Config.clientId.substring(0, 12)}...`,
+                ``,
+                `🌐 网络信息:`,
+                `当前URL: ${window.location.href}`,
+                `LocalStorage: ${localStorage.getItem('isLoggedIn') || '无'}`,
+                ``,
+                `📋 操作提示:`,
+                `- 双击用户卡片查看此信息`,
+                `- 按 Ctrl+D 也可打开调试面板`,
+                `- 如果Auth0失败，会自动使用模拟登录`
+            ];
+            
+            alert(debugInfo.join('\n'));
+        }
+        
+        // 双击用户卡片显示调试信息
+        document.querySelector('.user-card').addEventListener('dblclick', showDebugInfo);
+        
+        // 按 Ctrl+D 显示调试面板
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                showDebugInfo();
+            }
+        });
+        // ===================== 后端配置管理 =====================
+        
+        // 从后端获取积分配置
+        async function loadPointsConfig() {
+            try {
+                if (!authToken) {
+                    console.log('⚠️ 未登录，无法获取积分配置');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/app/points/config`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    pointsConfig = result.data;
+                    console.log('✅ 积分配置已加载:', pointsConfig);
+                    updateActionPointsDisplay(); // 更新界面显示
+                } else {
+                    console.error('❌ 获取积分配置失败:', response.statusText);
+                }
+            } catch (error) {
+                console.error('❌ 获取积分配置错误:', error);
+            }
+        }
+        
+        // 从后端获取AdMob配置
+        async function loadAdMobConfig() {
+            try {
+                if (!authToken) {
+                    console.log('⚠️ 未登录，无法获取AdMob配置');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/app/admob/config`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    admobConfig = result.data;
+                    console.log('✅ AdMob配置已加载:', admobConfig);
+                } else {
+                    console.error('❌ 获取AdMob配置失败:', response.statusText);
+                }
+            } catch (error) {
+                console.error('❌ 获取AdMob配置错误:', error);
+            }
+        }
+        
+        // 获取积分配置并显示在UI中
+        function getPointsForAction(actionType) {
+            if (!pointsConfig || !pointsConfig[actionType]) {
+                return { points: 10, name: '未知操作', description: '获得积分' };
+            }
+            return pointsConfig[actionType];
+        }
+        
+        // 更新操作按钮的积分显示
+        function updateActionPointsDisplay() {
+            if (!pointsConfig) return;
+            
+            // 更新观看视频按钮
+            const watchVideoConfig = getPointsForAction('watch_video');
+            const watchBtn = document.querySelector('[onclick="handleAction(\'watch_video\')"]');
+            if (watchBtn) {
+                const rewardText = watchBtn.querySelector('.reward');
+                if (rewardText) {
+                    rewardText.textContent = `+${watchVideoConfig.points}积分`;
+                }
+            }
+            
+            // 更新下载应用按钮
+            const downloadConfig = getPointsForAction('download_app');
+            const downloadBtn = document.querySelector('[onclick="handleAction(\'download_app\')"]');
+            if (downloadBtn) {
+                const rewardText = downloadBtn.querySelector('.reward');
+                if (rewardText) {
+                    rewardText.textContent = `+${downloadConfig.points}积分`;
+                }
+            }
+            
+            // 更新完成任务按钮
+            const taskConfig = getPointsForAction('complete_task');
+            const taskBtn = document.querySelector('[onclick="handleAction(\'complete_task\')"]');
+            if (taskBtn) {
+                const rewardText = taskBtn.querySelector('.reward');
+                if (rewardText) {
+                    rewardText.textContent = `+${taskConfig.points}积分`;
+                }
+            }
+            
+            console.log('✅ 操作按钮积分显示已更新');
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📱 DOM加载完成，初始化APP');
+            initializeAuth0();
+        });
+
+    </script>
+</body>
+</html>
+                const response = await fetch(`${API_BASE}/app/earn/daily-checkin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser.points += result.data.points_earned;
+                    updateUserInterface();
+                    alert(`每日签到完成！获得 ${result.data.points_earned} 积分`);
+                } else {
+                    alert(result.error || '操作失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 刷新积分
+        async function refreshPoints() {
+            try {
+                const response = await fetch(`${API_BASE}/app/user/points`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser.points = result.data.points;
+                    updateUserInterface();
+                    alert('积分已刷新');
+                } else {
+                    alert(result.error || '刷新失败');
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+
+        // 加载交易记录
+        async function loadTransactionHistory() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/app/user/transactions`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                if (result.success && result.data.length > 0) {
+                    const listElement = document.getElementById('transactionList');
+                    listElement.innerHTML = '';
+                    
+                    result.data.forEach(transaction => {
+                        const item = document.createElement('div');
+                        item.className = 'transaction-item';
+                        item.innerHTML = `
+                            <div class="transaction-info">
+                                <div class="title">${getTransactionTypeName(transaction.transaction_type)}</div>
+                                <div class="time">${new Date(transaction.created_at).toLocaleString()}</div>
+                            </div>
+                            <div class="transaction-amount">+${transaction.points_change.toLocaleString()}</div>
+                        `;
+                        listElement.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                console.error('加载交易记录失败:', error);
+            }
+        }
+
+        // 获取交易类型名称
+        function getTransactionTypeName(type) {
+            const types = {
+                'registration_bonus': '注册奖励',
+                'watch_video': '观看视频',
+                'download_app': '下载应用',
+                'daily_checkin': '每日签到',
+                'admin_adjust': '管理员调整'
+            };
+            return types[type] || type;
+        }
+
+        // 退出登录 - Auth0版本
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                console.log('🚪 用户退出登录');
+                
+                // 清除所有本地存储
+                localStorage.removeItem('auth0_token');
+                localStorage.removeItem('auth0_id_token');
+                localStorage.removeItem('user_profile');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('isLoggedIn');
+                sessionStorage.clear();
+                
+                // 重置状态
+                currentUser = null;
+                authToken = null;
+                isLoggedIn = false;
+                
+                // 显示退出消息
+                showMessage('正在退出登录...', 'info');
+                
+                // 更新UI
+                updateUIForLoggedOut();
+                
+                // Auth0退出登录
+                if (auth0) {
+                    try {
+                        auth0.logout({
+                            returnTo: window.location.origin + '/app-demo.html',
+                            clientID: auth0Config.clientId
+                        });
+                    } catch (error) {
+                        console.error('Auth0退出失败:', error);
+                        // 如果Auth0退出失败，直接刷新页面
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                } else {
+                    // 没有Auth0，直接刷新页面
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }
+        }
+        
+        // 退出登录的别名函数
+        function logoutUser() {
+            logout();
+        }
+        
+        // 编辑资料功能
+        function editProfile() {
+            alert('编辑资料功能正在开发中，敬请期待！\n\n将来可以修改:\n- 用户名\n- 头像\n- 个人简介');
+        }
+        
+        // 账户设置功能
+        function showSettings() {
+            alert('账户设置功能正在开发中，敬请期待！\n\n将来可以设置:\n- 通知偏好\n- 隐私设置\n- 安全设置');
+        }
+
+        // 检查服务器连接
+        async function checkServerConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    console.log('✅ 后台API服务器连接正常');
+                }
+            } catch (error) {
+                console.error('❌ 无法连接到后台API服务器');
+            }
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideLoginModal();
+            }
+        });
+        
+        // 调试函数
+        function showDebugInfo() {
+            const debugInfo = [
+                `🔍 Auth0调试信息:`,
+                ``,
+                `Auth0 SDK: ${typeof Auth0 !== 'undefined' ? '✅ 已加载' : '❌ 未加载'}`,
+                `Auth0对象: ${auth0 ? '✅ 已初始化' : '❌ 未初始化'}`,
+                `登录状态: ${isLoggedIn ? '✅ 已登录' : '❌ 未登录'}`,
+                `当前用户: ${currentUser ? currentUser.name : '无'}`,
+                `Domain: ${auth0Config.domain}`,
+                `Client ID: ${auth0Config.clientId.substring(0, 12)}...`,
+                ``,
+                `🌐 网络信息:`,
+                `当前URL: ${window.location.href}`,
+                `LocalStorage: ${localStorage.getItem('isLoggedIn') || '无'}`,
+                ``,
+                `📋 操作提示:`,
+                `- 双击用户卡片查看此信息`,
+                `- 按 Ctrl+D 也可打开调试面板`,
+                `- 如果Auth0失败，会自动使用模拟登录`
+            ];
+            
+            alert(debugInfo.join('\n'));
+        }
+        
+        // 双击用户卡片显示调试信息
+        document.querySelector('.user-card').addEventListener('dblclick', showDebugInfo);
+        
+        // 按 Ctrl+D 显示调试面板
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                showDebugInfo();
+            }
+        });
+        // ===================== 后端配置管理 =====================
+        
+        // 从后端获取积分配置
+        async function loadPointsConfig() {
+            try {
+                if (!authToken) {
+                    console.log('⚠️ 未登录，无法获取积分配置');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/app/points/config`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    pointsConfig = result.data;
+                    console.log('✅ 积分配置已加载:', pointsConfig);
+                    updateActionPointsDisplay(); // 更新界面显示
+                } else {
+                    console.error('❌ 获取积分配置失败:', response.statusText);
+                }
+            } catch (error) {
+                console.error('❌ 获取积分配置错误:', error);
+            }
+        }
+        
+        // 从后端获取AdMob配置
+        async function loadAdMobConfig() {
+            try {
+                if (!authToken) {
+                    console.log('⚠️ 未登录，无法获取AdMob配置');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/app/admob/config`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    admobConfig = result.data;
+                    console.log('✅ AdMob配置已加载:', admobConfig);
+                } else {
+                    console.error('❌ 获取AdMob配置失败:', response.statusText);
+                }
+            } catch (error) {
+                console.error('❌ 获取AdMob配置错误:', error);
+            }
+        }
+        
+        // 获取积分配置并显示在UI中
+        function getPointsForAction(actionType) {
+            if (!pointsConfig || !pointsConfig[actionType]) {
+                return { points: 10, name: '未知操作', description: '获得积分' };
+            }
+            return pointsConfig[actionType];
+        }
+        
+        // 更新操作按钮的积分显示
+        function updateActionPointsDisplay() {
+            if (!pointsConfig) return;
+            
+            // 更新观看视频按钮
+            const watchVideoConfig = getPointsForAction('watch_video');
+            const watchBtn = document.querySelector('[onclick="handleAction(\'watch_video\')"]');
+            if (watchBtn) {
+                const rewardText = watchBtn.querySelector('.reward');
+                if (rewardText) {
+                    rewardText.textContent = `+${watchVideoConfig.points}积分`;
+                }
+            }
+            
+            // 更新下载应用按钮
+            const downloadConfig = getPointsForAction('download_app');
+            const downloadBtn = document.querySelector('[onclick="handleAction(\'download_app\')"]');
+            if (downloadBtn) {
+                const rewardText = downloadBtn.querySelector('.reward');
+                if (rewardText) {
+                    rewardText.textContent = `+${downloadConfig.points}积分`;
+                }
+            }
+            
+            // 更新完成任务按钮
+            const taskConfig = getPointsForAction('complete_task');
+            const taskBtn = document.querySelector('[onclick="handleAction(\'complete_task\')"]');
+            if (taskBtn) {
+                const rewardText = taskBtn.querySelector('.reward');
+                if (rewardText) {
+                    rewardText.textContent = `+${taskConfig.points}积分`;
+                }
+            }
+            
+            console.log('✅ 操作按钮积分显示已更新');
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📱 DOM加载完成，初始化APP');
+            initializeAuth0();
+        });
+
+    </script>
+</body>
+</html>

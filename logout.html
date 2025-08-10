@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>退出登录 - 积分宝</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .logout-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 100%);
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        
+        .status.info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid rgba(33, 150, 243, 0.5);
+        }
+        
+        .debug-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            text-align: left;
+            font-size: 14px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <h1>🚪 退出登录</h1>
+        
+        <div id="status" class="status info">
+            检查登录状态中...
+        </div>
+        
+        <button class="logout-btn" onclick="performLogout()" id="logoutBtn">
+            立即退出登录
+        </button>
+        
+        <button class="back-btn" onclick="goBack()">
+            返回应用
+        </button>
+        
+        <div class="debug-info">
+            <strong>🔍 当前状态:</strong><br>
+            <span id="debugInfo">正在检查...</span>
+        </div>
+    </div>
+
+    <script>
+        // 检查当前登录状态
+        function checkLoginStatus() {
+            const statusDiv = document.getElementById('status');
+            const debugDiv = document.getElementById('debugInfo');
+            
+            const currentUser = localStorage.getItem('currentUser');
+            const authToken = localStorage.getItem('authToken');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            
+            let debugInfo = '';
+            debugInfo += `LocalStorage 数据:<br>`;
+            debugInfo += `- currentUser: ${currentUser ? '有数据' : '无'}<br>`;
+            debugInfo += `- authToken: ${authToken ? '有数据' : '无'}<br>`;
+            debugInfo += `- isLoggedIn: ${isLoggedIn || '无'}<br>`;
+            debugInfo += `- sessionStorage: ${Object.keys(sessionStorage).length} 项<br>`;
+            
+            if (currentUser || authToken || isLoggedIn) {
+                statusDiv.innerHTML = '✅ 检测到登录状态，可以退出登录';
+                statusDiv.className = 'status info';
+            } else {
+                statusDiv.innerHTML = '❌ 未检测到登录状态，可能已经退出';
+                statusDiv.className = 'status success';
+                document.getElementById('logoutBtn').innerHTML = '清除所有数据';
+            }
+            
+            debugDiv.innerHTML = debugInfo;
+        }
+        
+        // 执行退出登录
+        function performLogout() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '🔄 正在退出登录...';
+            statusDiv.className = 'status info';
+            
+            // 清除所有可能的登录数据
+            const keysToRemove = [
+                'currentUser',
+                'authToken', 
+                'isLoggedIn',
+                'auth0_token',
+                'auth0_id_token',
+                'user_profile',
+                'pendingAction'
+            ];
+            
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+            });
+            
+            // 清除所有sessionStorage
+            sessionStorage.clear();
+            
+            // 清除所有cookies (如果有)
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            statusDiv.innerHTML = '✅ 登录数据已清除！页面将在3秒后跳转...';
+            statusDiv.className = 'status success';
+            
+            // 更新调试信息
+            setTimeout(() => {
+                checkLoginStatus();
+                
+                // 3秒后跳转
+                setTimeout(() => {
+                    window.location.href = '/app-demo.html';
+                }, 3000);
+            }, 500);
+        }
+        
+        // 返回应用
+        function goBack() {
+            window.location.href = '/app-demo.html';
+        }
+        
+        // 页面加载时检查状态
+        window.addEventListener('load', function() {
+            checkLoginStatus();
+        });
+    </script>
+</body>
+</html>

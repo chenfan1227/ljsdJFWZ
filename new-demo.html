@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分宝 - 快速赚钱应用</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #4dd0e1 0%, #26c6da 50%, #00acc1 100%);
+            min-height: 100vh;
+            padding-bottom: 80px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* 顶部横幅 */
+        .hero-banner {
+            background: linear-gradient(135deg, #4dd0e1 0%, #00acc1 100%);
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+        }
+        
+        .coin-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 5px 15px rgba(255,193,7,0.4);
+            animation: coinSpin 3s ease-in-out infinite;
+        }
+        
+        @keyframes coinSpin {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+        }
+        
+        .decorative-circles {
+            position: absolute;
+            top: 20px;
+            left: 200px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .circle {
+            width: 8px;
+            height: 8px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            animation: float 2s ease-in-out infinite;
+        }
+        
+        .circle:nth-child(2) { animation-delay: 0.2s; }
+        .circle:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* 应用列表标题 */
+        .section-title {
+            color: #333;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        /* 主要收益卡片 */
+        .main-offer {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .offer-info h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .offer-info p {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .offer-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 3px 10px rgba(255,193,7,0.3);
+        }
+        
+        /* 收益列表 */
+        .earning-list {
+            background: #fff;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .earning-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        
+        .earning-item:last-child {
+            border-bottom: none;
+        }
+        
+        .earning-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .earning-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .earning-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .earning-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .earning-amount {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        /* 主要行动按钮 */
+        .main-cta {
+            background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            width: 100%;
+            margin: 20px 0;
+            box-shadow: 0 5px 20px rgba(255,112,67,0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .main-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,112,67,0.5);
+        }
+        
+        .main-cta:active {
+            transform: translateY(0);
+        }
+        
+        /* 联系方式 */
+        .contact-section {
+            text-align: center;
+            margin: 30px 0 20px 0;
+        }
+        
+        .contact-title {
+            color: #666;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+        
+        .contact-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .contact-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+        }
+        
+        .whatsapp { background: #25d366; }
+        .telegram { background: #0088cc; }
+        
+        .contact-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .contact-btn {
+            background: #00bcd4;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .contact-btn:hover {
+            background: #00acc1;
+            transform: translateX(5px);
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 15px 0;
+            box-shadow: 0 -3px 20px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #999;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: #ff7043;
+        }
+        
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .nav-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* 页面切换 */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Roblox风格游戏界面 */
+        .games-header {
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+            color: white;
+            padding: 25px 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .games-header h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .game-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .game-thumbnail {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px auto;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 3px 10px rgba(102,126,234,0.3);
+        }
+        
+        .game-title {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .game-reward {
+            color: #4caf50;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        
+        .play-btn {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76,175,80,0.4);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .coin-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 首页 -->
+        <div id="home" class="page active">
+            <!-- 英雄横幅 -->
+            <div class="hero-banner">
+                <h1 class="hero-title">积分宝</h1>
+                <p class="hero-subtitle">Start earning easily</p>
+                <div class="coin-icon">💰</div>
+                <div class="decorative-circles">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                </div>
+            </div>
+            
+            <div class="section-title">赚钱应用列表</div>
+            
+            <!-- 主要收益机会 -->
+            <div class="main-offer">
+                <div class="offer-info">
+                    <h3>Gold Age: 每天赚 100,000 积分</h3>
+                    <p>5分钟快速提现</p>
+                </div>
+                <div class="offer-icon">👑</div>
+            </div>
+            
+            <!-- 收益列表 -->
+            <div class="earning-list">
+                <div class="earning-item" onclick="earnPoints(10000, '免费现金')">
+                    <div class="earning-left">
+                        <div class="earning-icon">💵</div>
+                        <div class="earning-name">免费现金</div>
+                    </div>
+                    <div class="earning-amount">10,000积分</div>
+                </div>
+                
+                <div class="earning-item" onclick="earnPoints(100000, '每日收入')">
+                    <div class="earning-left">
+                        <div class="earning-icon">📈</div>
+                        <div class="earning-name">每日收入</div>
+                    </div>
+                    <div class="earning-amount">100,000积分</div>
+                </div>
+                
+                <div class="earning-item" onclick="earnPoints(50000, '看视频奖励')">
+                    <div class="earning-left">
+                        <div class="earning-icon">📺</div>
+                        <div class="earning-name">观看视频</div>
+                    </div>
+                    <div class="earning-amount">50,000积分</div>
+                </div>
+                
+                <div class="earning-item" onclick="earnPoints(30000, '下载应用')">
+                    <div class="earning-left">
+                        <div class="earning-icon">📱</div>
+                        <div class="earning-name">下载应用</div>
+                    </div>
+                    <div class="earning-amount">30,000积分</div>
+                </div>
+            </div>
+            
+            <!-- 主要行动按钮 -->
+            <button class="main-cta" onclick="showEarnings()">
+                点击开始赚钱
+            </button>
+            
+            <!-- 联系方式 -->
+            <div class="contact-section">
+                <div class="contact-title">联系我们了解更多</div>
+                
+                <div class="contact-item">
+                    <div class="contact-left">
+                        <div class="contact-icon whatsapp">📱</div>
+                        <div class="contact-name">WhatsApp 服务</div>
+                    </div>
+                    <button class="contact-btn">联系 ▶</button>
+                </div>
+                
+                <div class="contact-item">
+                    <div class="contact-left">
+                        <div class="contact-icon whatsapp">👥</div>
+                        <div class="contact-name">WhatsApp 群组</div>
+                    </div>
+                    <button class="contact-btn">联系 ▶</button>
+                </div>
+                
+                <div class="contact-item">
+                    <div class="contact-left">
+                        <div class="contact-icon telegram">📢</div>
+                        <div class="contact-name">Telegram 频道</div>
+                    </div>
+                    <button class="contact-btn">联系 ▶</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Roblox风格游戏页面 -->
+        <div id="games" class="page">
+            <div class="games-header">
+                <h1>🎮 游戏世界</h1>
+                <p>探索无限可能，赚取丰厚奖励</p>
+            </div>
+            
+            <div class="games-grid">
+                <div class="game-card" onclick="playGame(20000, '拼图大师')">
+                    <div class="game-thumbnail">🧩</div>
+                    <div class="game-title">拼图大师</div>
+                    <div class="game-reward">奖励: 20,000积分</div>
+                    <button class="play-btn">开始游戏</button>
+                </div>
+                
+                <div class="game-card" onclick="playGame(35000, '数字冲刺')">
+                    <div class="game-thumbnail">🔢</div>
+                    <div class="game-title">数字冲刺</div>
+                    <div class="game-reward">奖励: 35,000积分</div>
+                    <button class="play-btn">开始游戏</button>
+                </div>
+                
+                <div class="game-card" onclick="playGame(25000, '记忆大师')">
+                    <div class="game-thumbnail">🧠</div>
+                    <div class="game-title">记忆大师</div>
+                    <div class="game-reward">奖励: 25,000积分</div>
+                    <button class="play-btn">开始游戏</button>
+                </div>
+                
+                <div class="game-card" onclick="playGame(45000, '策略帝国')">
+                    <div class="game-thumbnail">🏰</div>
+                    <div class="game-title">策略帝国</div>
+                    <div class="game-reward">奖励: 45,000积分</div>
+                    <button class="play-btn">开始游戏</button>
+                </div>
+                
+                <div class="game-card" onclick="playGame(60000, '太空探索')">
+                    <div class="game-thumbnail">🚀</div>
+                    <div class="game-title">太空探索</div>
+                    <div class="game-reward">奖励: 60,000积分</div>
+                    <button class="play-btn">开始游戏</button>
+                </div>
+                
+                <div class="game-card" onclick="playGame(80000, '魔法世界')">
+                    <div class="game-thumbnail">🔮</div>
+                    <div class="game-title">魔法世界</div>
+                    <div class="game-reward">奖励: 80,000积分</div>
+                    <button class="play-btn">开始游戏</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 我的页面 -->
+        <div id="me" class="page">
+            <div class="games-header">
+                <h1>💎 我的账户</h1>
+                <p>当前积分: <span id="current-points">1,000,000</span></p>
+            </div>
+            
+            <div class="earning-list">
+                <div class="earning-item">
+                    <div class="earning-left">
+                        <div class="earning-icon">📊</div>
+                        <div class="earning-name">累计收益</div>
+                    </div>
+                    <div class="earning-amount" id="total-earned">1,000,000积分</div>
+                </div>
+                
+                <div class="earning-item">
+                    <div class="earning-left">
+                        <div class="earning-icon">🎯</div>
+                        <div class="earning-name">今日目标</div>
+                    </div>
+                    <div class="earning-amount">500,000积分</div>
+                </div>
+                
+                <div class="earning-item">
+                    <div class="earning-left">
+                        <div class="earning-icon">🏆</div>
+                        <div class="earning-name">等级</div>
+                    </div>
+                    <div class="earning-amount">钻石级</div>
+                </div>
+            </div>
+            
+            <button class="main-cta" onclick="showPage('admin')">
+                🔧 管理后台
+            </button>
+        </div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <nav class="bottom-nav">
+        <div class="nav-items">
+            <a href="#" class="nav-item active" onclick="showPage('home')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">首页</div>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('games')">
+                <div class="nav-icon">🎮</div>
+                <div class="nav-label">游戏</div>
+            </a>
+            <a href="#" class="nav-item" onclick="showPage('me')">
+                <div class="nav-icon">👤</div>
+                <div class="nav-label">我的</div>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        let points = 1000000;
+        let totalEarned = 1000000;
+        
+        function updatePoints() {
+            document.getElementById('current-points').textContent = points.toLocaleString();
+            document.getElementById('total-earned').textContent = totalEarned.toLocaleString() + '积分';
+        }
+        
+        function earnPoints(amount, activity) {
+            points += amount;
+            totalEarned += amount;
+            updatePoints();
+            
+            // 模拟AdMob广告显示
+            showAdMobAd(() => {
+                alert(`🎉 ${activity}完成！\n💰 获得 ${amount.toLocaleString()} 积分！\n📺 观看广告获得额外奖励！`);
+            });
+        }
+        
+        function playGame(reward, gameName) {
+            points += reward;
+            totalEarned += reward;
+            updatePoints();
+            
+            showAdMobAd(() => {
+                alert(`🎮 ${gameName}完成！\n💎 获得 ${reward.toLocaleString()} 积分！\n🎬 观看激励视频获得额外奖励！`);
+            });
+        }
+        
+        function showAdMobAd(callback) {
+            // 模拟AdMob广告加载和显示
+            const adOverlay = document.createElement('div');
+            adOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                color: white;
+                text-align: center;
+                font-size: 1.2rem;
+            `;
+            adOverlay.innerHTML = `
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 20px;">📺</div>
+                    <div>AdMob 激励视频广告</div>
+                    <div style="font-size: 0.9rem; margin-top: 10px; opacity: 0.7;">3秒后自动关闭...</div>
+                </div>
+            `;
+            
+            document.body.appendChild(adOverlay);
+            
+            setTimeout(() => {
+                document.body.removeChild(adOverlay);
+                callback();
+            }, 3000);
+        }
+        
+        function showEarnings() {
+            alert(`💰 您的总积分: ${points.toLocaleString()}\n🎯 继续努力赚取更多积分！`);
+        }
+        
+        function showPage(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 显示指定页面
+            if (pageId === 'admin') {
+                window.open('admin.html', '_blank');
+                return;
+            }
+            
+            document.getElementById(pageId).classList.add('active');
+            
+            // 更新导航状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 找到对应的导航项并激活
+            const navMap = { 'home': 0, 'games': 1, 'me': 2 };
+            if (navMap[pageId] !== undefined) {
+                document.querySelectorAll('.nav-item')[navMap[pageId]].classList.add('active');
+            }
+        }
+        
+        // 初始化
+        updatePoints();
+    </script>
+</body>
+</html>

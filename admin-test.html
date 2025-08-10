@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台登录测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); border: 1px solid #4CAF50; }
+        .error { background: rgba(244, 67, 54, 0.3); border: 1px solid #f44336; }
+        .info { background: rgba(33, 150, 243, 0.3); border: 1px solid #2196F3; }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ 管理后台登录</h1>
+        
+        <div id="message" style="display: none;"></div>
+        
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" value="admin" placeholder="请输入用户名">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" value="admin123" placeholder="请输入密码">
+        </div>
+        
+        <button onclick="doLogin()" id="loginBtn">登录管理后台</button>
+        
+        <button onclick="testConnection()">测试连接</button>
+        
+        <button onclick="clearStorage()">清除缓存</button>
+        
+        <div class="status" id="status">
+            🔍 等待操作...
+        </div>
+    </div>
+
+    <script>
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+            msg.style.display = 'block';
+            
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 5000);
+        }
+        
+        function updateStatus(text) {
+            document.getElementById('status').innerHTML = text;
+        }
+        
+        async function testConnection() {
+            updateStatus('🔍 测试连接...');
+            
+            const apis = [
+                'http://localhost:3001/api',
+                'http://192.168.1.29:3001/api'
+            ];
+            
+            for (let api of apis) {
+                try {
+                    updateStatus(`🔍 测试: ${api}`);
+                    const response = await fetch(api + '/health');
+                    const data = await response.text();
+                    
+                    if (response.ok) {
+                        updateStatus(`✅ 连接成功: ${api}<br>响应: ${data.substring(0, 100)}`);
+                        showMessage('后端连接正常！', 'success');
+                        return api;
+                    }
+                } catch (error) {
+                    updateStatus(`❌ 连接失败: ${api}<br>错误: ${error.message}`);
+                }
+            }
+            
+            showMessage('所有后端地址都无法连接', 'error');
+            return null;
+        }
+        
+        async function doLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            
+            if (!username || !password) {
+                showMessage('请输入用户名和密码', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+            updateStatus('🔐 执行登录...');
+            
+            try {
+                // 先测试连接
+                const workingAPI = await testConnection();
+                if (!workingAPI) {
+                    showMessage('无法连接后端，请检查服务状态', 'error');
+                    return;
+                }
+                
+                updateStatus(`🔐 向 ${workingAPI} 发送登录请求...`);
+                
+                const response = await fetch(workingAPI + '/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                updateStatus('📨 处理登录响应...');
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // 保存登录信息
+                    const authData = {
+                        token: result.token,
+                        user: result.admin || result.user,
+                        loginTime: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('adminAuth', JSON.stringify(authData));
+                    
+                    updateStatus(`✅ 登录成功！<br>用户: ${authData.user.username}<br>角色: ${authData.user.role}`);
+                    showMessage(`登录成功！欢迎 ${authData.user.username}`, 'success');
+                    
+                    // 跳转到管理后台
+                    setTimeout(() => {
+                        window.location.href = '/admin-dashboard.html';
+                    }, 2000);
+                    
+                } else {
+                    updateStatus(`❌ 登录失败: ${result.error || '未知错误'}`);
+                    showMessage(result.error || '登录失败', 'error');
+                }
+                
+            } catch (error) {
+                updateStatus(`❌ 请求异常: ${error.message}`);
+                showMessage('登录请求失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '登录管理后台';
+            }
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            updateStatus('🗑️ 已清除所有本地存储');
+            showMessage('缓存已清除', 'info');
+        }
+        
+        // 页面加载完成后自动测试连接
+        window.addEventListener('load', function() {
+            updateStatus('🚀 页面加载完成，自动测试连接...');
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>
+
+
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台登录测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); border: 1px solid #4CAF50; }
+        .error { background: rgba(244, 67, 54, 0.3); border: 1px solid #f44336; }
+        .info { background: rgba(33, 150, 243, 0.3); border: 1px solid #2196F3; }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ 管理后台登录</h1>
+        
+        <div id="message" style="display: none;"></div>
+        
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" value="admin" placeholder="请输入用户名">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" value="admin123" placeholder="请输入密码">
+        </div>
+        
+        <button onclick="doLogin()" id="loginBtn">登录管理后台</button>
+        
+        <button onclick="testConnection()">测试连接</button>
+        
+        <button onclick="clearStorage()">清除缓存</button>
+        
+        <div class="status" id="status">
+            🔍 等待操作...
+        </div>
+    </div>
+
+    <script>
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+            msg.style.display = 'block';
+            
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 5000);
+        }
+        
+        function updateStatus(text) {
+            document.getElementById('status').innerHTML = text;
+        }
+        
+        async function testConnection() {
+            updateStatus('🔍 测试连接...');
+            
+            const apis = [
+                'http://localhost:3001/api',
+                'http://192.168.1.29:3001/api'
+            ];
+            
+            for (let api of apis) {
+                try {
+                    updateStatus(`🔍 测试: ${api}`);
+                    const response = await fetch(api + '/health');
+                    const data = await response.text();
+                    
+                    if (response.ok) {
+                        updateStatus(`✅ 连接成功: ${api}<br>响应: ${data.substring(0, 100)}`);
+                        showMessage('后端连接正常！', 'success');
+                        return api;
+                    }
+                } catch (error) {
+                    updateStatus(`❌ 连接失败: ${api}<br>错误: ${error.message}`);
+                }
+            }
+            
+            showMessage('所有后端地址都无法连接', 'error');
+            return null;
+        }
+        
+        async function doLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            
+            if (!username || !password) {
+                showMessage('请输入用户名和密码', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+            updateStatus('🔐 执行登录...');
+            
+            try {
+                // 先测试连接
+                const workingAPI = await testConnection();
+                if (!workingAPI) {
+                    showMessage('无法连接后端，请检查服务状态', 'error');
+                    return;
+                }
+                
+                updateStatus(`🔐 向 ${workingAPI} 发送登录请求...`);
+                
+                const response = await fetch(workingAPI + '/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                updateStatus('📨 处理登录响应...');
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // 保存登录信息
+                    const authData = {
+                        token: result.token,
+                        user: result.admin || result.user,
+                        loginTime: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('adminAuth', JSON.stringify(authData));
+                    
+                    updateStatus(`✅ 登录成功！<br>用户: ${authData.user.username}<br>角色: ${authData.user.role}`);
+                    showMessage(`登录成功！欢迎 ${authData.user.username}`, 'success');
+                    
+                    // 跳转到管理后台
+                    setTimeout(() => {
+                        window.location.href = '/admin-dashboard.html';
+                    }, 2000);
+                    
+                } else {
+                    updateStatus(`❌ 登录失败: ${result.error || '未知错误'}`);
+                    showMessage(result.error || '登录失败', 'error');
+                }
+                
+            } catch (error) {
+                updateStatus(`❌ 请求异常: ${error.message}`);
+                showMessage('登录请求失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '登录管理后台';
+            }
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            updateStatus('🗑️ 已清除所有本地存储');
+            showMessage('缓存已清除', 'info');
+        }
+        
+        // 页面加载完成后自动测试连接
+        window.addEventListener('load', function() {
+            updateStatus('🚀 页面加载完成，自动测试连接...');
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>
+

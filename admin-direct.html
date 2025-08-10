@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直接设置管理员认证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { text-align: center; margin-bottom: 30px; }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover { background: #45a049; }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ 管理员认证设置</h1>
+        
+        <button onclick="setDirectAuth()">直接设置管理员认证</button>
+        <button onclick="goToDashboard()">进入管理后台</button>
+        <button onclick="clearAll()">清除所有认证</button>
+        <button onclick="testAPI()">测试API连接</button>
+        
+        <div class="status" id="status">
+            点击上方按钮开始操作...
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(text, type = '') {
+            const status = document.getElementById('status');
+            status.innerHTML = text;
+            status.className = 'status ' + type;
+        }
+        
+        async function testAPI() {
+            updateStatus('🔍 测试API连接...');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                const data = await response.text();
+                
+                if (response.ok) {
+                    updateStatus('✅ API连接正常\n' + data, 'success');
+                } else {
+                    updateStatus('❌ API响应错误: ' + response.status, 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ API连接失败: ' + error.message, 'error');
+            }
+        }
+        
+        async function setDirectAuth() {
+            updateStatus('🔐 正在设置管理员认证...');
+            
+            try {
+                // 直接调用登录API
+                const response = await fetch('http://localhost:3001/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // 设置认证信息
+                    const authData = {
+                        token: result.token,
+                        user: result.admin || result.user,
+                        loginTime: new Date().toISOString()
+                    };
+                    
+                    // 保存到所有可能的位置
+                    localStorage.setItem('adminAuth', JSON.stringify(authData));
+                    sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                    localStorage.setItem('adminToken', result.token);
+                    localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                    
+                    updateStatus(`✅ 认证设置成功！
+用户: ${authData.user.username}
+角色: ${authData.user.role}
+Token: ${result.token.substring(0, 50)}...
+
+现在可以进入管理后台了！`, 'success');
+                    
+                } else {
+                    updateStatus('❌ 认证失败: ' + (result.error || '未知错误'), 'error');
+                }
+                
+            } catch (error) {
+                updateStatus('❌ 设置认证失败: ' + error.message, 'error');
+            }
+        }
+        
+        function goToDashboard() {
+            updateStatus('🚀 跳转到管理后台...');
+            window.location.href = '/admin-dashboard.html';
+        }
+        
+        function clearAll() {
+            localStorage.clear();
+            sessionStorage.clear();
+            updateStatus('🗑️ 已清除所有认证信息', 'success');
+        }
+        
+        // 页面加载时检查当前认证状态
+        window.addEventListener('load', function() {
+            const authData = localStorage.getItem('adminAuth');
+            if (authData) {
+                try {
+                    const auth = JSON.parse(authData);
+                    updateStatus(`📋 当前认证状态:
+用户: ${auth.user.username}
+角色: ${auth.user.role}
+登录时间: ${auth.loginTime}
+
+如果管理后台仍显示未认证，请点击"直接设置管理员认证"`, 'success');
+                } catch (error) {
+                    updateStatus('⚠️ 发现无效的认证数据，请重新设置', 'error');
+                }
+            } else {
+                updateStatus('❌ 未找到认证信息，请点击"直接设置管理员认证"', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直接设置管理员认证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { text-align: center; margin-bottom: 30px; }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover { background: #45a049; }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ 管理员认证设置</h1>
+        
+        <button onclick="setDirectAuth()">直接设置管理员认证</button>
+        <button onclick="goToDashboard()">进入管理后台</button>
+        <button onclick="clearAll()">清除所有认证</button>
+        <button onclick="testAPI()">测试API连接</button>
+        
+        <div class="status" id="status">
+            点击上方按钮开始操作...
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(text, type = '') {
+            const status = document.getElementById('status');
+            status.innerHTML = text;
+            status.className = 'status ' + type;
+        }
+        
+        async function testAPI() {
+            updateStatus('🔍 测试API连接...');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                const data = await response.text();
+                
+                if (response.ok) {
+                    updateStatus('✅ API连接正常\n' + data, 'success');
+                } else {
+                    updateStatus('❌ API响应错误: ' + response.status, 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ API连接失败: ' + error.message, 'error');
+            }
+        }
+        
+        async function setDirectAuth() {
+            updateStatus('🔐 正在设置管理员认证...');
+            
+            try {
+                // 直接调用登录API
+                const response = await fetch('http://localhost:3001/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // 设置认证信息
+                    const authData = {
+                        token: result.token,
+                        user: result.admin || result.user,
+                        loginTime: new Date().toISOString()
+                    };
+                    
+                    // 保存到所有可能的位置
+                    localStorage.setItem('adminAuth', JSON.stringify(authData));
+                    sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                    localStorage.setItem('adminToken', result.token);
+                    localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                    
+                    updateStatus(`✅ 认证设置成功！
+用户: ${authData.user.username}
+角色: ${authData.user.role}
+Token: ${result.token.substring(0, 50)}...
+
+现在可以进入管理后台了！`, 'success');
+                    
+                } else {
+                    updateStatus('❌ 认证失败: ' + (result.error || '未知错误'), 'error');
+                }
+                
+            } catch (error) {
+                updateStatus('❌ 设置认证失败: ' + error.message, 'error');
+            }
+        }
+        
+        function goToDashboard() {
+            updateStatus('🚀 跳转到管理后台...');
+            window.location.href = '/admin-dashboard.html';
+        }
+        
+        function clearAll() {
+            localStorage.clear();
+            sessionStorage.clear();
+            updateStatus('🗑️ 已清除所有认证信息', 'success');
+        }
+        
+        // 页面加载时检查当前认证状态
+        window.addEventListener('load', function() {
+            const authData = localStorage.getItem('adminAuth');
+            if (authData) {
+                try {
+                    const auth = JSON.parse(authData);
+                    updateStatus(`📋 当前认证状态:
+用户: ${auth.user.username}
+角色: ${auth.user.role}
+登录时间: ${auth.loginTime}
+
+如果管理后台仍显示未认证，请点击"直接设置管理员认证"`, 'success');
+                } catch (error) {
+                    updateStatus('⚠️ 发现无效的认证数据，请重新设置', 'error');
+                }
+            } else {
+                updateStatus('❌ 未找到认证信息，请点击"直接设置管理员认证"', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
+

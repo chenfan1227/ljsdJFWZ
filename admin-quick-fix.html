@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台快速修复工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 200px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn.success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .status.error {
+            background: #fff5f5;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        .status.info {
+            background: #ebf8ff;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+        
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 30px 0;
+        }
+        
+        .quick-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .quick-links a {
+            background: #f7fafc;
+            color: #4a5568;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-links a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 后台快速修复工具</h1>
+            <p>一键解决所有后台认证和加载问题</p>
+        </div>
+        
+        <div id="statusArea"></div>
+        
+        <div class="step">
+            <h3>🎯 第一步：测试后端连接</h3>
+            <p>检查后端服务是否正常运行</p>
+            <button class="btn" onclick="testBackend()">测试后端连接</button>
+        </div>
+        
+        <div class="step">
+            <h3>🔑 第二步：获取管理员权限</h3>
+            <p>使用默认账号登录获取有效token</p>
+            <button class="btn" onclick="quickLogin()">快速登录</button>
+        </div>
+        
+        <div class="step">
+            <h3>💾 第三步：保存认证信息</h3>
+            <p>将token保存到所有可能的存储位置</p>
+            <button class="btn" onclick="saveAuthData()">保存认证</button>
+        </div>
+        
+        <div class="step">
+            <h3>🚀 第四步：进入管理后台</h3>
+            <p>完成修复，立即使用管理后台</p>
+            <button class="btn success" onclick="goToDashboard()">进入后台</button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="step">
+            <h3>⚡ 一键修复</h3>
+            <p>自动执行所有修复步骤</p>
+            <button class="btn" onclick="autoFix()" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); font-size: 1.2rem; padding: 18px 40px;">🚀 一键修复所有问题</button>
+        </div>
+        
+        <div class="quick-links">
+            <a href="admin-dashboard.html">管理后台</a>
+            <a href="admin-login-simple.html">简单登录</a>
+            <a href="app-demo.html">用户App</a>
+            <a href="#" onclick="clearAll()">清空所有数据</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URLS = [
+            'http://192.168.1.29:3001/api',
+            'http://localhost:3001/api',
+            'http://127.0.0.1:3001/api'
+        ];
+        
+        let workingAPI = null;
+        let authToken = null;
+        let adminData = null;
+        
+        function showStatus(message, type = 'info') {
+            const statusArea = document.getElementById('statusArea');
+            statusArea.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        // 测试后端连接
+        async function testBackend() {
+            showStatus('🔍 正在测试后端连接...', 'info');
+            
+            for (const apiUrl of API_URLS) {
+                try {
+                    console.log(`测试: ${apiUrl}`);
+                    const response = await fetch(`${apiUrl}/admin/dashboard`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.status === 401) {
+                        // 401表示需要认证，但API是可达的
+                        workingAPI = apiUrl;
+                        showStatus(`✅ 后端连接成功！API地址: ${apiUrl}`, 'success');
+                        return;
+                    }
+                } catch (error) {
+                    console.log(`${apiUrl} 连接失败:`, error);
+                }
+            }
+            
+            showStatus('❌ 后端连接失败！请确保后端服务正在运行。', 'error');
+        }
+        
+        // 快速登录
+        async function quickLogin() {
+            if (!workingAPI) {
+                await testBackend();
+                if (!workingAPI) {
+                    showStatus('❌ 请先测试后端连接！', 'error');
+                    return;
+                }
+            }
+            
+            showStatus('🔐 正在登录...', 'info');
+            
+            try {
+                const response = await fetch(`${workingAPI}/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    authToken = data.token;
+                    adminData = data.admin;
+                    showStatus(`✅ 登录成功！欢迎 ${adminData.name}`, 'success');
+                } else {
+                    showStatus(`❌ 登录失败: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ 登录请求失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 保存认证数据
+        function saveAuthData() {
+            if (!authToken || !adminData) {
+                showStatus('❌ 请先完成登录！', 'error');
+                return;
+            }
+            
+            showStatus('💾 正在保存认证信息...', 'info');
+            
+            try {
+                // 清除所有可能的旧数据
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 保存多种格式确保兼容性
+                const authInfo = {
+                    token: authToken,
+                    user: adminData,
+                    admin: adminData,
+                    timestamp: Date.now()
+                };
+                
+                // 主要格式
+                localStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                localStorage.setItem('adminToken', authToken);
+                localStorage.setItem('adminUser', JSON.stringify(adminData));
+                
+                // 备用格式
+                sessionStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                sessionStorage.setItem('adminToken', authToken);
+                sessionStorage.setItem('adminUser', JSON.stringify(adminData));
+                
+                // 测试读取
+                const test = localStorage.getItem('adminAuth');
+                if (test) {
+                    showStatus('✅ 认证信息保存成功！', 'success');
+                } else {
+                    throw new Error('保存验证失败');
+                }
+            } catch (error) {
+                showStatus(`❌ 保存失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 进入管理后台
+        function goToDashboard() {
+            const saved = localStorage.getItem('adminAuth');
+            if (!saved) {
+                showStatus('❌ 请先完成所有修复步骤！', 'error');
+                return;
+            }
+            
+            showStatus('🚀 正在跳转到管理后台...', 'success');
+            setTimeout(() => {
+                window.location.href = 'admin-dashboard.html';
+            }, 1000);
+        }
+        
+        // 一键修复
+        async function autoFix() {
+            showStatus('🚀 开始自动修复...', 'info');
+            
+            // 步骤1: 测试后端
+            await testBackend();
+            if (!workingAPI) {
+                showStatus('❌ 自动修复失败：后端连接不可用', 'error');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 步骤2: 登录
+            await quickLogin();
+            if (!authToken) {
+                showStatus('❌ 自动修复失败：登录失败', 'error');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 步骤3: 保存认证
+            saveAuthData();
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 步骤4: 完成
+            showStatus('🎉 自动修复完成！3秒后跳转到管理后台...', 'success');
+            setTimeout(() => {
+                window.location.href = 'admin-dashboard.html';
+            }, 3000);
+        }
+        
+        // 清空所有数据
+        function clearAll() {
+            if (confirm('确定要清空所有本地数据吗？')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                showStatus('🗑️ 已清空所有本地数据', 'info');
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            showStatus('👋 欢迎使用后台快速修复工具！', 'info');
+            // 自动测试后端连接
+            setTimeout(testBackend, 1000);
+        };
+    </script>
+</body>
+</html>
+
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台快速修复工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 200px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn.success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .status.error {
+            background: #fff5f5;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        .status.info {
+            background: #ebf8ff;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+        
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 30px 0;
+        }
+        
+        .quick-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .quick-links a {
+            background: #f7fafc;
+            color: #4a5568;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-links a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 后台快速修复工具</h1>
+            <p>一键解决所有后台认证和加载问题</p>
+        </div>
+        
+        <div id="statusArea"></div>
+        
+        <div class="step">
+            <h3>🎯 第一步：测试后端连接</h3>
+            <p>检查后端服务是否正常运行</p>
+            <button class="btn" onclick="testBackend()">测试后端连接</button>
+        </div>
+        
+        <div class="step">
+            <h3>🔑 第二步：获取管理员权限</h3>
+            <p>使用默认账号登录获取有效token</p>
+            <button class="btn" onclick="quickLogin()">快速登录</button>
+        </div>
+        
+        <div class="step">
+            <h3>💾 第三步：保存认证信息</h3>
+            <p>将token保存到所有可能的存储位置</p>
+            <button class="btn" onclick="saveAuthData()">保存认证</button>
+        </div>
+        
+        <div class="step">
+            <h3>🚀 第四步：进入管理后台</h3>
+            <p>完成修复，立即使用管理后台</p>
+            <button class="btn success" onclick="goToDashboard()">进入后台</button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="step">
+            <h3>⚡ 一键修复</h3>
+            <p>自动执行所有修复步骤</p>
+            <button class="btn" onclick="autoFix()" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); font-size: 1.2rem; padding: 18px 40px;">🚀 一键修复所有问题</button>
+        </div>
+        
+        <div class="quick-links">
+            <a href="admin-dashboard.html">管理后台</a>
+            <a href="admin-login-simple.html">简单登录</a>
+            <a href="app-demo.html">用户App</a>
+            <a href="#" onclick="clearAll()">清空所有数据</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URLS = [
+            'http://192.168.1.29:3001/api',
+            'http://localhost:3001/api',
+            'http://127.0.0.1:3001/api'
+        ];
+        
+        let workingAPI = null;
+        let authToken = null;
+        let adminData = null;
+        
+        function showStatus(message, type = 'info') {
+            const statusArea = document.getElementById('statusArea');
+            statusArea.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        // 测试后端连接
+        async function testBackend() {
+            showStatus('🔍 正在测试后端连接...', 'info');
+            
+            for (const apiUrl of API_URLS) {
+                try {
+                    console.log(`测试: ${apiUrl}`);
+                    const response = await fetch(`${apiUrl}/admin/dashboard`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.status === 401) {
+                        // 401表示需要认证，但API是可达的
+                        workingAPI = apiUrl;
+                        showStatus(`✅ 后端连接成功！API地址: ${apiUrl}`, 'success');
+                        return;
+                    }
+                } catch (error) {
+                    console.log(`${apiUrl} 连接失败:`, error);
+                }
+            }
+            
+            showStatus('❌ 后端连接失败！请确保后端服务正在运行。', 'error');
+        }
+        
+        // 快速登录
+        async function quickLogin() {
+            if (!workingAPI) {
+                await testBackend();
+                if (!workingAPI) {
+                    showStatus('❌ 请先测试后端连接！', 'error');
+                    return;
+                }
+            }
+            
+            showStatus('🔐 正在登录...', 'info');
+            
+            try {
+                const response = await fetch(`${workingAPI}/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    authToken = data.token;
+                    adminData = data.admin;
+                    showStatus(`✅ 登录成功！欢迎 ${adminData.name}`, 'success');
+                } else {
+                    showStatus(`❌ 登录失败: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ 登录请求失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 保存认证数据
+        function saveAuthData() {
+            if (!authToken || !adminData) {
+                showStatus('❌ 请先完成登录！', 'error');
+                return;
+            }
+            
+            showStatus('💾 正在保存认证信息...', 'info');
+            
+            try {
+                // 清除所有可能的旧数据
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 保存多种格式确保兼容性
+                const authInfo = {
+                    token: authToken,
+                    user: adminData,
+                    admin: adminData,
+                    timestamp: Date.now()
+                };
+                
+                // 主要格式
+                localStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                localStorage.setItem('adminToken', authToken);
+                localStorage.setItem('adminUser', JSON.stringify(adminData));
+                
+                // 备用格式
+                sessionStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                sessionStorage.setItem('adminToken', authToken);
+                sessionStorage.setItem('adminUser', JSON.stringify(adminData));
+                
+                // 测试读取
+                const test = localStorage.getItem('adminAuth');
+                if (test) {
+                    showStatus('✅ 认证信息保存成功！', 'success');
+                } else {
+                    throw new Error('保存验证失败');
+                }
+            } catch (error) {
+                showStatus(`❌ 保存失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 进入管理后台
+        function goToDashboard() {
+            const saved = localStorage.getItem('adminAuth');
+            if (!saved) {
+                showStatus('❌ 请先完成所有修复步骤！', 'error');
+                return;
+            }
+            
+            showStatus('🚀 正在跳转到管理后台...', 'success');
+            setTimeout(() => {
+                window.location.href = 'admin-dashboard.html';
+            }, 1000);
+        }
+        
+        // 一键修复
+        async function autoFix() {
+            showStatus('🚀 开始自动修复...', 'info');
+            
+            // 步骤1: 测试后端
+            await testBackend();
+            if (!workingAPI) {
+                showStatus('❌ 自动修复失败：后端连接不可用', 'error');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 步骤2: 登录
+            await quickLogin();
+            if (!authToken) {
+                showStatus('❌ 自动修复失败：登录失败', 'error');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 步骤3: 保存认证
+            saveAuthData();
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 步骤4: 完成
+            showStatus('🎉 自动修复完成！3秒后跳转到管理后台...', 'success');
+            setTimeout(() => {
+                window.location.href = 'admin-dashboard.html';
+            }, 3000);
+        }
+        
+        // 清空所有数据
+        function clearAll() {
+            if (confirm('确定要清空所有本地数据吗？')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                showStatus('🗑️ 已清空所有本地数据', 'info');
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            showStatus('👋 欢迎使用后台快速修复工具！', 'info');
+            // 自动测试后端连接
+            setTimeout(testBackend, 1000);
+        };
+    </script>
+</body>
+</html>

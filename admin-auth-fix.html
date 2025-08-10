@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>认证修复工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FFD700, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .status-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .status-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        
+        .status-content {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>🔧 认证修复工具</h1>
+            <p>一键解决管理后台认证问题</p>
+        </div>
+        
+        <div class="status-card">
+            <div class="status-title">🔍 系统诊断</div>
+            <div class="status-content" id="diagnostics">
+                初始化中...
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="autoFix()">
+                🚀 一键修复认证
+            </button>
+            <button class="btn btn-info" onclick="manualFix()">
+                🔧 手动修复
+            </button>
+            <button class="btn btn-warning" onclick="testAuth()">
+                🧪 测试认证
+            </button>
+            <button class="btn btn-danger" onclick="resetAll()">
+                🗑️ 重置全部
+            </button>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="goToDashboard()" style="grid-column: 1 / -1;">
+                🏠 进入管理后台
+            </button>
+        </div>
+        
+        <div class="status-card" id="logCard" style="display: none;">
+            <div class="status-title">📋 操作日志</div>
+            <div class="status-content" id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        let logMessages = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            logMessages.push(logEntry);
+            
+            const logElement = document.getElementById('logs');
+            if (logElement) {
+                logElement.innerHTML = logMessages.slice(-10).join('\n');
+                document.getElementById('logCard').style.display = 'block';
+            }
+            
+            console.log(logEntry);
+        }
+        
+        function updateProgress(percent) {
+            document.getElementById('progress').style.width = percent + '%';
+        }
+        
+        function updateDiagnostics(content) {
+            document.getElementById('diagnostics').innerHTML = content;
+        }
+        
+        async function runDiagnostics() {
+            updateDiagnostics('<span class="pulse">🔍 正在检查系统状态...</span>');
+            updateProgress(10);
+            
+            const results = [];
+            
+            // 检查localStorage
+            const adminAuth = localStorage.getItem('adminAuth');
+            const adminToken = localStorage.getItem('adminToken');
+            const adminUser = localStorage.getItem('adminUser');
+            
+            results.push(`📦 localStorage 检查:`);
+            results.push(`  • adminAuth: ${adminAuth ? '✅ 存在' : '❌ 缺失'}`);
+            results.push(`  • adminToken: ${adminToken ? '✅ 存在' : '❌ 缺失'}`);
+            results.push(`  • adminUser: ${adminUser ? '✅ 存在' : '❌ 缺失'}`);
+            
+            updateProgress(30);
+            
+            // 检查sessionStorage
+            const sessionAuth = sessionStorage.getItem('adminAuth');
+            results.push(`🎯 sessionStorage 检查:`);
+            results.push(`  • adminAuth: ${sessionAuth ? '✅ 存在' : '❌ 缺失'}`);
+            
+            updateProgress(50);
+            
+            // 检查API连接
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                if (response.ok) {
+                    results.push(`🌐 API连接: ✅ 正常 (localhost:3001)`);
+                } else {
+                    throw new Error('响应错误');
+                }
+            } catch (error) {
+                results.push(`🌐 API连接: ❌ 失败 (${error.message})`);
+            }
+            
+            updateProgress(70);
+            
+            // 检查认证有效性
+            if (adminAuth) {
+                try {
+                    const auth = JSON.parse(adminAuth);
+                    results.push(`🔐 认证数据解析: ✅ 成功`);
+                    results.push(`  • 用户: ${auth.user?.username || '未知'}`);
+                    results.push(`  • 角色: ${auth.user?.role || '未知'}`);
+                    results.push(`  • Token: ${auth.token ? '✅ 存在' : '❌ 缺失'}`);
+                } catch (error) {
+                    results.push(`🔐 认证数据解析: ❌ 失败 (${error.message})`);
+                }
+            }
+            
+            updateProgress(100);
+            updateDiagnostics(results.join('\n'));
+            log('系统诊断完成');
+        }
+        
+        async function autoFix() {
+            log('开始自动修复认证问题');
+            updateProgress(0);
+            
+            try {
+                // Step 1: 清除旧数据
+                log('第1步: 清除所有旧的认证数据');
+                localStorage.removeItem('adminAuth');
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                sessionStorage.clear();
+                updateProgress(20);
+                
+                // Step 2: 获取新token
+                log('第2步: 从API获取新的认证token');
+                const response = await fetch('http://localhost:3001/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                updateProgress(50);
+                
+                if (!response.ok) {
+                    throw new Error('登录API请求失败');
+                }
+                
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || '登录失败');
+                }
+                
+                log('第3步: 保存认证数据到本地存储');
+                
+                // Step 3: 保存认证数据 (多重保险)
+                const authData = {
+                    token: result.token,
+                    user: result.admin || result.user,
+                    loginTime: new Date().toISOString(),
+                    source: 'auto-fix'
+                };
+                
+                // 保存到多个位置确保兼容
+                localStorage.setItem('adminAuth', JSON.stringify(authData));
+                sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                localStorage.setItem('adminToken', result.token);
+                localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                
+                updateProgress(80);
+                
+                // Step 4: 验证保存的数据
+                log('第4步: 验证保存的认证数据');
+                const savedAuth = localStorage.getItem('adminAuth');
+                if (!savedAuth) {
+                    throw new Error('认证数据保存失败');
+                }
+                
+                const parsedAuth = JSON.parse(savedAuth);
+                if (!parsedAuth.token || !parsedAuth.user) {
+                    throw new Error('认证数据格式错误');
+                }
+                
+                updateProgress(100);
+                log('✅ 认证修复完成！');
+                
+                updateDiagnostics(`<span class="success">🎉 认证修复成功！</span>
+                
+✅ 修复内容:
+  • 清除了所有旧的认证数据
+  • 从API获取了新的有效token
+  • 保存到localStorage和sessionStorage
+  • 验证了数据完整性
+  
+👤 当前用户: ${parsedAuth.user.username}
+🛡️ 用户角色: ${parsedAuth.user.role}
+🔑 Token状态: 有效
+⏰ 修复时间: ${new Date().toLocaleString()}
+
+现在可以进入管理后台了！`);
+                
+                // 自动跳转倒计时
+                setTimeout(() => {
+                    log('3秒后自动跳转到管理后台...');
+                    setTimeout(() => goToDashboard(), 3000);
+                }, 1000);
+                
+            } catch (error) {
+                log(`❌ 自动修复失败: ${error.message}`);
+                updateDiagnostics(`<span class="error">❌ 自动修复失败</span>\n\n错误信息: ${error.message}\n\n请尝试手动修复或联系管理员。`);
+                updateProgress(0);
+            }
+        }
+        
+        async function manualFix() {
+            const token = prompt('请输入有效的管理员token\n(可以从登录API获取):');
+            if (!token) return;
+            
+            const username = prompt('请输入用户名:', 'admin');
+            if (!username) return;
+            
+            try {
+                const authData = {
+                    token: token,
+                    user: {
+                        username: username,
+                        role: 'super_admin',
+                        name: '手动设置管理员'
+                    },
+                    loginTime: new Date().toISOString(),
+                    source: 'manual-fix'
+                };
+                
+                localStorage.setItem('adminAuth', JSON.stringify(authData));
+                sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                localStorage.setItem('adminToken', token);
+                localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                
+                log('✅ 手动认证设置完成');
+                alert('手动认证设置完成！现在可以进入管理后台。');
+                
+            } catch (error) {
+                log(`❌ 手动修复失败: ${error.message}`);
+                alert('手动修复失败: ' + error.message);
+            }
+        }
+        
+        async function testAuth() {
+            log('开始测试认证状态');
+            
+            const authData = localStorage.getItem('adminAuth');
+            if (!authData) {
+                alert('❌ 未找到认证数据，请先运行修复');
+                return;
+            }
+            
+            try {
+                const auth = JSON.parse(authData);
+                const response = await fetch('http://localhost:3001/api/admin/verify', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${auth.token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ 认证测试成功！认证状态有效。');
+                        log('✅ 认证测试通过');
+                    } else {
+                        alert('❌ 认证无效: ' + (result.error || '未知错误'));
+                        log('❌ 认证测试失败: 认证无效');
+                    }
+                } else {
+                    alert('❌ 认证测试失败: API响应错误');
+                    log('❌ 认证测试失败: API响应错误');
+                }
+                
+            } catch (error) {
+                alert('❌ 认证测试异常: ' + error.message);
+                log(`❌ 认证测试异常: ${error.message}`);
+            }
+        }
+        
+        function resetAll() {
+            if (confirm('确定要重置所有认证数据吗？这将清除所有登录信息。')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                log('🗑️ 已重置所有认证数据');
+                alert('所有认证数据已重置');
+                runDiagnostics();
+            }
+        }
+        
+        function goToDashboard() {
+            log('跳转到管理后台');
+            window.location.href = '/admin-dashboard.html';
+        }
+        
+        // 页面加载时自动运行诊断
+        window.addEventListener('load', function() {
+            log('认证修复工具启动');
+            setTimeout(runDiagnostics, 500);
+        });
+    </script>
+</body>
+</html>
+
+
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>认证修复工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FFD700, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .status-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .status-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        
+        .status-content {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1>🔧 认证修复工具</h1>
+            <p>一键解决管理后台认证问题</p>
+        </div>
+        
+        <div class="status-card">
+            <div class="status-title">🔍 系统诊断</div>
+            <div class="status-content" id="diagnostics">
+                初始化中...
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="autoFix()">
+                🚀 一键修复认证
+            </button>
+            <button class="btn btn-info" onclick="manualFix()">
+                🔧 手动修复
+            </button>
+            <button class="btn btn-warning" onclick="testAuth()">
+                🧪 测试认证
+            </button>
+            <button class="btn btn-danger" onclick="resetAll()">
+                🗑️ 重置全部
+            </button>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="goToDashboard()" style="grid-column: 1 / -1;">
+                🏠 进入管理后台
+            </button>
+        </div>
+        
+        <div class="status-card" id="logCard" style="display: none;">
+            <div class="status-title">📋 操作日志</div>
+            <div class="status-content" id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        let logMessages = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            logMessages.push(logEntry);
+            
+            const logElement = document.getElementById('logs');
+            if (logElement) {
+                logElement.innerHTML = logMessages.slice(-10).join('\n');
+                document.getElementById('logCard').style.display = 'block';
+            }
+            
+            console.log(logEntry);
+        }
+        
+        function updateProgress(percent) {
+            document.getElementById('progress').style.width = percent + '%';
+        }
+        
+        function updateDiagnostics(content) {
+            document.getElementById('diagnostics').innerHTML = content;
+        }
+        
+        async function runDiagnostics() {
+            updateDiagnostics('<span class="pulse">🔍 正在检查系统状态...</span>');
+            updateProgress(10);
+            
+            const results = [];
+            
+            // 检查localStorage
+            const adminAuth = localStorage.getItem('adminAuth');
+            const adminToken = localStorage.getItem('adminToken');
+            const adminUser = localStorage.getItem('adminUser');
+            
+            results.push(`📦 localStorage 检查:`);
+            results.push(`  • adminAuth: ${adminAuth ? '✅ 存在' : '❌ 缺失'}`);
+            results.push(`  • adminToken: ${adminToken ? '✅ 存在' : '❌ 缺失'}`);
+            results.push(`  • adminUser: ${adminUser ? '✅ 存在' : '❌ 缺失'}`);
+            
+            updateProgress(30);
+            
+            // 检查sessionStorage
+            const sessionAuth = sessionStorage.getItem('adminAuth');
+            results.push(`🎯 sessionStorage 检查:`);
+            results.push(`  • adminAuth: ${sessionAuth ? '✅ 存在' : '❌ 缺失'}`);
+            
+            updateProgress(50);
+            
+            // 检查API连接
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                if (response.ok) {
+                    results.push(`🌐 API连接: ✅ 正常 (localhost:3001)`);
+                } else {
+                    throw new Error('响应错误');
+                }
+            } catch (error) {
+                results.push(`🌐 API连接: ❌ 失败 (${error.message})`);
+            }
+            
+            updateProgress(70);
+            
+            // 检查认证有效性
+            if (adminAuth) {
+                try {
+                    const auth = JSON.parse(adminAuth);
+                    results.push(`🔐 认证数据解析: ✅ 成功`);
+                    results.push(`  • 用户: ${auth.user?.username || '未知'}`);
+                    results.push(`  • 角色: ${auth.user?.role || '未知'}`);
+                    results.push(`  • Token: ${auth.token ? '✅ 存在' : '❌ 缺失'}`);
+                } catch (error) {
+                    results.push(`🔐 认证数据解析: ❌ 失败 (${error.message})`);
+                }
+            }
+            
+            updateProgress(100);
+            updateDiagnostics(results.join('\n'));
+            log('系统诊断完成');
+        }
+        
+        async function autoFix() {
+            log('开始自动修复认证问题');
+            updateProgress(0);
+            
+            try {
+                // Step 1: 清除旧数据
+                log('第1步: 清除所有旧的认证数据');
+                localStorage.removeItem('adminAuth');
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                sessionStorage.clear();
+                updateProgress(20);
+                
+                // Step 2: 获取新token
+                log('第2步: 从API获取新的认证token');
+                const response = await fetch('http://localhost:3001/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                updateProgress(50);
+                
+                if (!response.ok) {
+                    throw new Error('登录API请求失败');
+                }
+                
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || '登录失败');
+                }
+                
+                log('第3步: 保存认证数据到本地存储');
+                
+                // Step 3: 保存认证数据 (多重保险)
+                const authData = {
+                    token: result.token,
+                    user: result.admin || result.user,
+                    loginTime: new Date().toISOString(),
+                    source: 'auto-fix'
+                };
+                
+                // 保存到多个位置确保兼容
+                localStorage.setItem('adminAuth', JSON.stringify(authData));
+                sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                localStorage.setItem('adminToken', result.token);
+                localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                
+                updateProgress(80);
+                
+                // Step 4: 验证保存的数据
+                log('第4步: 验证保存的认证数据');
+                const savedAuth = localStorage.getItem('adminAuth');
+                if (!savedAuth) {
+                    throw new Error('认证数据保存失败');
+                }
+                
+                const parsedAuth = JSON.parse(savedAuth);
+                if (!parsedAuth.token || !parsedAuth.user) {
+                    throw new Error('认证数据格式错误');
+                }
+                
+                updateProgress(100);
+                log('✅ 认证修复完成！');
+                
+                updateDiagnostics(`<span class="success">🎉 认证修复成功！</span>
+                
+✅ 修复内容:
+  • 清除了所有旧的认证数据
+  • 从API获取了新的有效token
+  • 保存到localStorage和sessionStorage
+  • 验证了数据完整性
+  
+👤 当前用户: ${parsedAuth.user.username}
+🛡️ 用户角色: ${parsedAuth.user.role}
+🔑 Token状态: 有效
+⏰ 修复时间: ${new Date().toLocaleString()}
+
+现在可以进入管理后台了！`);
+                
+                // 自动跳转倒计时
+                setTimeout(() => {
+                    log('3秒后自动跳转到管理后台...');
+                    setTimeout(() => goToDashboard(), 3000);
+                }, 1000);
+                
+            } catch (error) {
+                log(`❌ 自动修复失败: ${error.message}`);
+                updateDiagnostics(`<span class="error">❌ 自动修复失败</span>\n\n错误信息: ${error.message}\n\n请尝试手动修复或联系管理员。`);
+                updateProgress(0);
+            }
+        }
+        
+        async function manualFix() {
+            const token = prompt('请输入有效的管理员token\n(可以从登录API获取):');
+            if (!token) return;
+            
+            const username = prompt('请输入用户名:', 'admin');
+            if (!username) return;
+            
+            try {
+                const authData = {
+                    token: token,
+                    user: {
+                        username: username,
+                        role: 'super_admin',
+                        name: '手动设置管理员'
+                    },
+                    loginTime: new Date().toISOString(),
+                    source: 'manual-fix'
+                };
+                
+                localStorage.setItem('adminAuth', JSON.stringify(authData));
+                sessionStorage.setItem('adminAuth', JSON.stringify(authData));
+                localStorage.setItem('adminToken', token);
+                localStorage.setItem('adminUser', JSON.stringify(authData.user));
+                
+                log('✅ 手动认证设置完成');
+                alert('手动认证设置完成！现在可以进入管理后台。');
+                
+            } catch (error) {
+                log(`❌ 手动修复失败: ${error.message}`);
+                alert('手动修复失败: ' + error.message);
+            }
+        }
+        
+        async function testAuth() {
+            log('开始测试认证状态');
+            
+            const authData = localStorage.getItem('adminAuth');
+            if (!authData) {
+                alert('❌ 未找到认证数据，请先运行修复');
+                return;
+            }
+            
+            try {
+                const auth = JSON.parse(authData);
+                const response = await fetch('http://localhost:3001/api/admin/verify', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${auth.token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('✅ 认证测试成功！认证状态有效。');
+                        log('✅ 认证测试通过');
+                    } else {
+                        alert('❌ 认证无效: ' + (result.error || '未知错误'));
+                        log('❌ 认证测试失败: 认证无效');
+                    }
+                } else {
+                    alert('❌ 认证测试失败: API响应错误');
+                    log('❌ 认证测试失败: API响应错误');
+                }
+                
+            } catch (error) {
+                alert('❌ 认证测试异常: ' + error.message);
+                log(`❌ 认证测试异常: ${error.message}`);
+            }
+        }
+        
+        function resetAll() {
+            if (confirm('确定要重置所有认证数据吗？这将清除所有登录信息。')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                log('🗑️ 已重置所有认证数据');
+                alert('所有认证数据已重置');
+                runDiagnostics();
+            }
+        }
+        
+        function goToDashboard() {
+            log('跳转到管理后台');
+            window.location.href = '/admin-dashboard.html';
+        }
+        
+        // 页面加载时自动运行诊断
+        window.addEventListener('load', function() {
+            log('认证修复工具启动');
+            setTimeout(runDiagnostics, 500);
+        });
+    </script>
+</body>
+</html>
+

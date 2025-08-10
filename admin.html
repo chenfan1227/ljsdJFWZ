@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分宝 - 管理后台</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .menu-item {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            border-left-color: #fff;
+        }
+        
+        .menu-item.active {
+            background: rgba(255,255,255,0.15);
+            border-left-color: #fff;
+        }
+        
+        .menu-icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .stat-icon.revenue { background: linear-gradient(135deg, #4caf50, #45a049); }
+        .stat-icon.users { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .stat-icon.installs { background: linear-gradient(135deg, #ff9800, #f57c00); }
+        .stat-icon.ads { background: linear-gradient(135deg, #9c27b0, #7b1fa2); }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .stat-change {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .stat-change.positive {
+            color: #4caf50;
+        }
+        
+        .stat-change.negative {
+            color: #f44336;
+        }
+        
+        /* 图表容器 */
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .chart-filters {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        /* 表格样式 */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .search-box {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 250px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #e8f5e8;
+            color: #4caf50;
+        }
+        
+        .status-inactive {
+            background: #ffebee;
+            color: #f44336;
+        }
+        
+        .status-premium {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+        
+        /* 页面切换 */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* AdMob专用样式 */
+        .admob-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .ad-type-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .ad-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .ad-type-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .ad-revenue {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #4caf50;
+            margin-bottom: 5px;
+        }
+        
+        .ad-impressions {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 侧边栏 -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>💎 积分宝</h1>
+                <p>管理后台</p>
+            </div>
+            
+            <a href="#" class="menu-item active" onclick="showPage('dashboard')">
+                <span class="menu-icon">📊</span>
+                数据概览
+            </a>
+            
+            <a href="#" class="menu-item" onclick="showPage('admob')">
+                <span class="menu-icon">📱</span>
+                AdMob收益
+            </a>
+            
+            <a href="#" class="menu-item" onclick="showPage('users')">
+                <span class="menu-icon">👥</span>
+                用户管理
+            </a>
+            
+            <a href="#" class="menu-item" onclick="showPage('revenue')">
+                <span class="menu-icon">💰</span>
+                收益报告
+            </a>
+            
+            <a href="#" class="menu-item" onclick="showPage('analytics')">
+                <span class="menu-icon">📈</span>
+                数据分析
+            </a>
+            
+            <a href="#" class="menu-item" onclick="showPage('settings')">
+                <span class="menu-icon">⚙️</span>
+                系统设置
+            </a>
+        </nav>
+        
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <!-- 数据概览页面 -->
+            <div id="dashboard" class="page active">
+                <div class="header">
+                    <h1>📊 数据概览</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="refreshData()">刷新数据</button>
+                        <button class="btn btn-success" onclick="exportReport()">导出报告</button>
+                    </div>
+                </div>
+                
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon revenue">💰</div>
+                        <div class="stat-value">$12,847</div>
+                        <div class="stat-label">今日总收益</div>
+                        <div class="stat-change positive">↗ +15.3% 较昨日</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon users">👥</div>
+                        <div class="stat-value">48,329</div>
+                        <div class="stat-label">活跃用户</div>
+                        <div class="stat-change positive">↗ +8.7% 较昨日</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon installs">📱</div>
+                        <div class="stat-value">3,247</div>
+                        <div class="stat-label">今日新增安装</div>
+                        <div class="stat-change positive">↗ +12.4% 较昨日</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon ads">📺</div>
+                        <div class="stat-value">185,293</div>
+                        <div class="stat-label">广告展示次数</div>
+                        <div class="stat-change positive">↗ +22.1% 较昨日</div>
+                    </div>
+                </div>
+                
+                <!-- 收益趋势图 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">收益趋势</h2>
+                        <div class="chart-filters">
+                            <button class="filter-btn active" onclick="filterChart('7d')">7天</button>
+                            <button class="filter-btn" onclick="filterChart('30d')">30天</button>
+                            <button class="filter-btn" onclick="filterChart('90d')">90天</button>
+                        </div>
+                    </div>
+                    <canvas id="revenueChart" width="400" height="200"></canvas>
+                </div>
+                
+                <!-- 用户增长图 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">用户增长趋势</h2>
+                    </div>
+                    <canvas id="userGrowthChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <!-- AdMob收益页面 -->
+            <div id="admob" class="page">
+                <div class="header">
+                    <h1>📱 AdMob 收益分析</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="syncAdMobData()">同步AdMob数据</button>
+                    </div>
+                </div>
+                
+                <!-- AdMob总览 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon revenue">💵</div>
+                        <div class="stat-value">$8,924</div>
+                        <div class="stat-label">AdMob总收益</div>
+                        <div class="stat-change positive">↗ +18.5% 本月</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon ads">📊</div>
+                        <div class="stat-value">2.34</div>
+                        <div class="stat-label">eCPM (美元)</div>
+                        <div class="stat-change positive">↗ +5.2%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon users">👆</div>
+                        <div class="stat-value">85.6%</div>
+                        <div class="stat-label">点击率 (CTR)</div>
+                        <div class="stat-change positive">↗ +2.1%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon installs">📱</div>
+                        <div class="stat-value">92.3%</div>
+                        <div class="stat-label">填充率</div>
+                        <div class="stat-change positive">↗ +1.8%</div>
+                    </div>
+                </div>
+                
+                <!-- 广告类型收益 -->
+                <div class="admob-grid">
+                    <div class="ad-type-card">
+                        <div class="ad-type-icon">📺</div>
+                        <div class="ad-type-title">激励视频广告</div>
+                        <div class="ad-revenue">$4,523</div>
+                        <div class="ad-impressions">78,429 次展示</div>
+                    </div>
+                    
+                    <div class="ad-type-card">
+                        <div class="ad-type-icon">📱</div>
+                        <div class="ad-type-title">插页广告</div>
+                        <div class="ad-revenue">$2,847</div>
+                        <div class="ad-impressions">45,681 次展示</div>
+                    </div>
+                    
+                    <div class="ad-type-card">
+                        <div class="ad-type-icon">🎯</div>
+                        <div class="ad-type-title">横幅广告</div>
+                        <div class="ad-revenue">$1,234</div>
+                        <div class="ad-impressions">156,892 次展示</div>
+                    </div>
+                    
+                    <div class="ad-type-card">
+                        <div class="ad-type-icon">📰</div>
+                        <div class="ad-type-title">原生广告</div>
+                        <div class="ad-revenue">$320</div>
+                        <div class="ad-impressions">12,485 次展示</div>
+                    </div>
+                </div>
+                
+                <!-- AdMob详细数据表 -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">AdMob单元详细数据</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>广告单元ID</th>
+                                <th>广告类型</th>
+                                <th>展示次数</th>
+                                <th>点击次数</th>
+                                <th>CTR</th>
+                                <th>收益</th>
+                                <th>eCPM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ca-app-pub-xxx/rewarded</td>
+                                <td>激励视频</td>
+                                <td>78,429</td>
+                                <td>5,234</td>
+                                <td>6.67%</td>
+                                <td>$4,523.67</td>
+                                <td>$5.77</td>
+                            </tr>
+                            <tr>
+                                <td>ca-app-pub-xxx/interstitial</td>
+                                <td>插页广告</td>
+                                <td>45,681</td>
+                                <td>2,843</td>
+                                <td>6.22%</td>
+                                <td>$2,847.23</td>
+                                <td>$6.23</td>
+                            </tr>
+                            <tr>
+                                <td>ca-app-pub-xxx/banner</td>
+                                <td>横幅广告</td>
+                                <td>156,892</td>
+                                <td>1,247</td>
+                                <td>0.79%</td>
+                                <td>$1,234.89</td>
+                                <td>$0.79</td>
+                            </tr>
+                            <tr>
+                                <td>ca-app-pub-xxx/native</td>
+                                <td>原生广告</td>
+                                <td>12,485</td>
+                                <td>623</td>
+                                <td>4.99%</td>
+                                <td>$320.45</td>
+                                <td>$2.57</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 用户管理页面 -->
+            <div id="users" class="page">
+                <div class="header">
+                    <h1>👥 用户管理</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="addUser()">添加用户</button>
+                        <button class="btn btn-success" onclick="exportUsers()">导出用户</button>
+                    </div>
+                </div>
+                
+                <!-- 用户统计 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon users">👥</div>
+                        <div class="stat-value">48,329</div>
+                        <div class="stat-label">总用户数</div>
+                        <div class="stat-change positive">↗ +1,247 本周</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon revenue">⚡</div>
+                        <div class="stat-value">32,847</div>
+                        <div class="stat-label">活跃用户</div>
+                        <div class="stat-change positive">↗ +8.7%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon installs">💎</div>
+                        <div class="stat-value">2,847</div>
+                        <div class="stat-label">VIP用户</div>
+                        <div class="stat-change positive">↗ +12.4%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon ads">📊</div>
+                        <div class="stat-value">73.2%</div>
+                        <div class="stat-label">留存率</div>
+                        <div class="stat-change positive">↗ +2.1%</div>
+                    </div>
+                </div>
+                
+                <!-- 用户列表 -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">用户列表</h3>
+                        <input type="text" class="search-box" placeholder="搜索用户..." onkeyup="searchUsers(this.value)">
+                    </div>
+                    <table class="data-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>用户ID</th>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>注册时间</th>
+                                <th>积分余额</th>
+                                <th>会员等级</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- 用户数据将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 收益报告页面 -->
+            <div id="revenue" class="page">
+                <div class="header">
+                    <h1>💰 收益报告</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="generateReport()">生成报告</button>
+                    </div>
+                </div>
+                
+                <!-- 收益统计 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon revenue">💰</div>
+                        <div class="stat-value">$95,847</div>
+                        <div class="stat-label">本月总收益</div>
+                        <div class="stat-change positive">↗ +23.5% 较上月</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon ads">📱</div>
+                        <div class="stat-value">$78,234</div>
+                        <div class="stat-label">AdMob收益</div>
+                        <div class="stat-change positive">↗ +18.7%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon users">💎</div>
+                        <div class="stat-value">$12,847</div>
+                        <div class="stat-label">VIP会员收益</div>
+                        <div class="stat-change positive">↗ +45.2%</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon installs">🎯</div>
+                        <div class="stat-value">$4,766</div>
+                        <div class="stat-label">其他收益</div>
+                        <div class="stat-change positive">↗ +8.9%</div>
+                    </div>
+                </div>
+                
+                <!-- 收益详细列表 -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">收益详细记录</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>收益来源</th>
+                                <th>用户数量</th>
+                                <th>交易次数</th>
+                                <th>收益金额</th>
+                                <th>增长率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024-01-08</td>
+                                <td>AdMob - 激励视频</td>
+                                <td>15,234</td>
+                                <td>78,429</td>
+                                <td>$4,523.67</td>
+                                <td><span class="stat-change positive">+15.3%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-08</td>
+                                <td>AdMob - 插页广告</td>
+                                <td>12,847</td>
+                                <td>45,681</td>
+                                <td>$2,847.23</td>
+                                <td><span class="stat-change positive">+8.7%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-08</td>
+                                <td>VIP会员订阅</td>
+                                <td>847</td>
+                                <td>1,247</td>
+                                <td>$1,847.90</td>
+                                <td><span class="stat-change positive">+45.2%</span></td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-08</td>
+                                <td>AdMob - 横幅广告</td>
+                                <td>28,493</td>
+                                <td>156,892</td>
+                                <td>$1,234.89</td>
+                                <td><span class="stat-change positive">+5.4%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 数据分析页面 -->
+            <div id="analytics" class="page">
+                <div class="header">
+                    <h1>📈 数据分析</h1>
+                </div>
+                
+                <!-- 分析图表 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">用户行为分析</h2>
+                    </div>
+                    <canvas id="userBehaviorChart" width="400" height="200"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">广告类型收益占比</h2>
+                    </div>
+                    <canvas id="adRevenueChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <!-- 系统设置页面 -->
+            <div id="settings" class="page">
+                <div class="header">
+                    <h1>⚙️ 系统设置</h1>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">AdMob配置</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">激励视频广告单元ID:</label>
+                            <input type="text" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" value="ca-app-pub-3940256099942544/5224354917" readonly>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">插页广告单元ID:</label>
+                            <input type="text" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" value="ca-app-pub-3940256099942544/1033173712" readonly>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">横幅广告单元ID:</label>
+                            <input type="text" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" value="ca-app-pub-3940256099942544/6300978111" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 模拟用户数据
+        const userData = [
+            { id: 1001, username: 'user001', email: 'user001@example.com', registerDate: '2024-01-05', points: 125000, level: 'VIP', status: 'active' },
+            { id: 1002, username: 'user002', email: 'user002@example.com', registerDate: '2024-01-04', points: 89000, level: '黄金', status: 'active' },
+            { id: 1003, username: 'user003', email: 'user003@example.com', registerDate: '2024-01-03', points: 45000, level: '白银', status: 'active' },
+            { id: 1004, username: 'user004', email: 'user004@example.com', registerDate: '2024-01-02', points: 23000, level: '青铜', status: 'inactive' },
+            { id: 1005, username: 'user005', email: 'user005@example.com', registerDate: '2024-01-01', points: 156000, level: 'VIP', status: 'active' }
+        ];
+        
+        // 页面切换
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 根据页面加载相应的图表
+            if (pageId === 'dashboard') {
+                loadDashboardCharts();
+            } else if (pageId === 'analytics') {
+                loadAnalyticsCharts();
+            } else if (pageId === 'users') {
+                loadUsersTable();
+            }
+        }
+        
+        // 加载用户表格
+        function loadUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+            
+            userData.forEach(user => {
+                const row = `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td>${user.registerDate}</td>
+                        <td>${user.points.toLocaleString()}</td>
+                        <td><span class="status-badge status-premium">${user.level}</span></td>
+                        <td><span class="status-badge ${user.status === 'active' ? 'status-active' : 'status-inactive'}">${user.status === 'active' ? '活跃' : '非活跃'}</span></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="editUser(${user.id})">编辑</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        // 搜索用户
+        function searchUsers(query) {
+            const filteredUsers = userData.filter(user => 
+                user.username.toLowerCase().includes(query.toLowerCase()) ||
+                user.email.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+            
+            filteredUsers.forEach(user => {
+                const row = `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td>${user.registerDate}</td>
+                        <td>${user.points.toLocaleString()}</td>
+                        <td><span class="status-badge status-premium">${user.level}</span></td>
+                        <td><span class="status-badge ${user.status === 'active' ? 'status-active' : 'status-inactive'}">${user.status === 'active' ? '活跃' : '非活跃'}</span></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="editUser(${user.id})">编辑</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+        
+        // 加载仪表板图表
+        function loadDashboardCharts() {
+            // 收益趋势图
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1月1日', '1月2日', '1月3日', '1月4日', '1月5日', '1月6日', '1月7日'],
+                    datasets: [{
+                        label: '每日收益 ($)',
+                        data: [8500, 9200, 8800, 10500, 11200, 12000, 12847],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 用户增长图
+            const userCtx = document.getElementById('userGrowthChart').getContext('2d');
+            new Chart(userCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['1月1日', '1月2日', '1月3日', '1月4日', '1月5日', '1月6日', '1月7日'],
+                    datasets: [{
+                        label: '新增用户',
+                        data: [2800, 3200, 2900, 3500, 3800, 4100, 3247],
+                        backgroundColor: 'rgba(76, 175, 80, 0.8)',
+                        borderColor: '#4caf50',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 加载分析图表
+        function loadAnalyticsCharts() {
+            // 用户行为分析
+            const behaviorCtx = document.getElementById('userBehaviorChart').getContext('2d');
+            new Chart(behaviorCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['观看视频', '玩游戏', '每日签到', '邀请好友'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: [
+                            '#ff6384',
+                            '#36a2eb',
+                            '#ffce56',
+                            '#4bc0c0'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // 广告收益占比
+            const adRevenueCtx = document.getElementById('adRevenueChart').getContext('2d');
+            new Chart(adRevenueCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['激励视频', '插页广告', '横幅广告', '原生广告'],
+                    datasets: [{
+                        data: [4523, 2847, 1234, 320],
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#4facfe'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 其他功能函数
+        function refreshData() {
+            alert('📊 数据已刷新！');
+        }
+        
+        function exportReport() {
+            alert('📄 报告已导出到下载文件夹！');
+        }
+        
+        function syncAdMobData() {
+            alert('🔄 AdMob数据同步中...');
+            setTimeout(() => {
+                alert('✅ AdMob数据同步完成！');
+            }, 2000);
+        }
+        
+        function addUser() {
+            alert('➕ 添加用户功能');
+        }
+        
+        function exportUsers() {
+            alert('📄 用户数据已导出！');
+        }
+        
+        function editUser(userId) {
+            alert(`✏️ 编辑用户 ID: ${userId}`);
+        }
+        
+        function generateReport() {
+            alert('📊 正在生成收益报告...');
+        }
+        
+        function filterChart(period) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            alert(`📅 已切换到 ${period} 视图`);
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardCharts();
+            loadUsersTable();
+        });
+    </script>
+</body>
+</html>

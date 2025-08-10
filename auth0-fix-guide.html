@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth0权限问题修复指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        
+        h2 {
+            color: #FFD700;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        h3 {
+            color: #87CEEB;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .step {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #FFC107;
+            margin: 15px 0;
+        }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #F44336;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            margin: 15px 0;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px 5px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Auth0权限问题修复指南</h1>
+        
+        <div class="error">
+            <strong>🚨 当前问题:</strong> "无权访问该资源" - 这通常是Auth0应用配置或Google OAuth权限问题
+        </div>
+
+        <h2>🛠️ 完整解决方案</h2>
+
+        <div class="step">
+            <h3>步骤1: 检查Auth0应用基本设置</h3>
+            <p>登录 <strong>https://manage.auth0.com/</strong></p>
+            <ul>
+                <li>进入 Applications → 您的应用</li>
+                <li>确认 <strong>Application Type</strong> 设置为 <code>Single Page Application</code></li>
+                <li>记下 <code>Domain</code> 和 <code>Client ID</code></li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>步骤2: 配置回调URL (关键)</h3>
+            <p>在 <strong>Allowed Callback URLs</strong> 中添加:</p>
+            <div class="code-block">http://192.168.1.29:8080/app-demo.html,
+http://localhost:8080/app-demo.html,
+http://192.168.1.29:8080/auth0-debug-fixed.html,
+http://192.168.1.29:8080/auth0-success.html</div>
+        </div>
+
+        <div class="step">
+            <h3>步骤3: 配置Web Origins</h3>
+            <p>在 <strong>Allowed Web Origins</strong> 中添加:</p>
+            <div class="code-block">http://192.168.1.29:8080,
+http://localhost:8080</div>
+        </div>
+
+        <div class="step">
+            <h3>步骤4: 配置Google连接 (重要)</h3>
+            <ul>
+                <li>进入 <strong>Connections → Social</strong></li>
+                <li>找到 <strong>Google</strong> 连接</li>
+                <li>点击 ⚙️ 设置按钮</li>
+                <li>确保在 <strong>Applications</strong> 标签中启用了您的应用</li>
+                <li>检查 Google Client ID 和 Client Secret 是否正确配置</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Google OAuth配置检查:</strong>
+            <ul>
+                <li>如果您使用的是Auth0默认的Google配置，可能会有权限限制</li>
+                <li>建议创建自己的Google OAuth应用</li>
+                <li>访问 <strong>https://console.developers.google.com/</strong></li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>步骤5: 创建自己的Google OAuth应用 (推荐)</h3>
+            <ol>
+                <li>访问 <strong>Google Cloud Console</strong>: https://console.cloud.google.com/</li>
+                <li>创建新项目或选择现有项目</li>
+                <li>启用 Google+ API</li>
+                <li>创建 OAuth 2.0 客户端ID</li>
+                <li>在授权的重定向URI中添加:
+                    <div class="code-block">https://dev-pnok5gjc2y8dk2eb.us.auth0.com/login/callback</div>
+                </li>
+                <li>将获得的 Client ID 和 Client Secret 配置到Auth0的Google连接中</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>步骤6: 权限范围配置</h3>
+            <p>在Auth0的Google连接设置中，确保 <strong>Scopes</strong> 包含:</p>
+            <div class="code-block">openid profile email</div>
+        </div>
+
+        <div class="success">
+            <strong>✅ 快速测试方法:</strong>
+            <p>配置完成后，尝试以下测试页面:</p>
+            <ul>
+                <li><a href="/auth0-debug-fixed.html" class="btn">🧪 Auth0调试页面</a></li>
+                <li><a href="/simple-app.html" class="btn secondary">🔧 简化版应用</a></li>
+                <li><a href="/logout.html" class="btn secondary">🚪 清除登录状态</a></li>
+            </ul>
+        </div>
+
+        <h2>🔍 常见问题排查</h2>
+
+        <div class="step">
+            <h3>问题1: "access_denied"</h3>
+            <ul>
+                <li>检查Google连接是否启用</li>
+                <li>确认您的Google账户有权限访问</li>
+                <li>尝试使用不同的Google账户</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>问题2: "unauthorized_client"</h3>
+            <ul>
+                <li>检查应用类型是否为Single Page Application</li>
+                <li>确认Client ID正确</li>
+                <li>检查重定向URI配置</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>问题3: 权限被拒绝</h3>
+            <ul>
+                <li>可能是Google OAuth应用未经验证</li>
+                <li>尝试添加测试用户</li>
+                <li>检查应用发布状态</li>
+            </ul>
+        </div>
+
+        <h2>🆘 紧急备用方案</h2>
+
+        <div class="warning">
+            如果Auth0问题持续，可以临时使用模拟登录继续开发:
+            <br><br>
+            <a href="/simple-app.html" class="btn">🔧 使用简化版应用</a>
+            <a href="/logout.html" class="btn secondary">🗑️ 清除所有数据</a>
+        </div>
+
+        <div class="success">
+            <strong>📞 需要帮助?</strong>
+            <p>如果按照以上步骤仍有问题，请提供以下信息:</p>
+            <ul>
+                <li>具体的错误消息</li>
+                <li>Auth0应用配置截图</li>
+                <li>Google连接配置截图</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

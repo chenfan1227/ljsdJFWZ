@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth0调试 - 强制真实登录</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn.primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        
+        .status.error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+        
+        .status.info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid rgba(33, 150, 243, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Auth0强制登录调试</h1>
+        
+        <div id="status" class="status info">
+            准备测试Auth0真实登录...
+        </div>
+        
+        <button class="btn primary" onclick="testAuth0Direct()">
+            🚀 测试直接Auth0登录
+        </button>
+        
+        <button class="btn" onclick="testAuth0SDK()">
+            🔧 测试Auth0 SDK
+        </button>
+        
+        <button class="btn" onclick="clearAllAndTest()">
+            🗑️ 清除数据并重测
+        </button>
+        
+        <button class="btn danger" onclick="goToLogout()">
+            🚪 前往退出登录页
+        </button>
+        
+        <div class="log" id="debugLog">
+等待测试...\n
+        </div>
+    </div>
+
+    <!-- Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0/9.23.2/auth0.min.js"></script>
+    
+    <script>
+        // Auth0配置（使用您的真实配置）
+        const auth0Config = {
+            domain: 'dev-pnok5gjc2y8dk2eb.us.auth0.com',
+            clientId: 'wvn63LPmkjht4Pk3TYQpoc1HtpY94Wyz',
+            redirectUri: window.location.origin + '/auth0-debug-fixed.html',
+            responseType: 'token id_token',
+            scope: 'openid profile email',
+            nonce: 'nonce_' + Math.random().toString(36).substr(2, 15)
+        };
+        
+        let auth0;
+        
+        function log(message) {
+            const logDiv = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        // 测试直接Auth0登录
+        function testAuth0Direct() {
+            log('🚀 开始测试直接Auth0登录...');
+            updateStatus('正在跳转到Auth0...', 'info');
+            
+            try {
+                const loginUrl = `https://${auth0Config.domain}/authorize?` +
+                    `response_type=${auth0Config.responseType}&` +
+                    `client_id=${auth0Config.clientId}&` +
+                    `redirect_uri=${encodeURIComponent(auth0Config.redirectUri)}&` +
+                    `scope=${encodeURIComponent(auth0Config.scope)}&` +
+                    `connection=google-oauth2&` +
+                    `nonce=${auth0Config.nonce}`;
+                
+                log('🌐 构造的登录URL:');
+                log(loginUrl);
+                log('🔄 即将跳转到Auth0登录页面...');
+                
+                // 直接跳转，不做任何检查
+                setTimeout(() => {
+                    window.location.href = loginUrl;
+                }, 2000);
+                
+            } catch (error) {
+                log('❌ 直接登录失败: ' + error.message);
+                updateStatus('直接登录失败', 'error');
+            }
+        }
+        
+        // 测试Auth0 SDK
+        function testAuth0SDK() {
+            log('🔧 开始测试Auth0 SDK...');
+            
+            try {
+                if (typeof Auth0 === 'undefined') {
+                    log('❌ Auth0 SDK未加载');
+                    updateStatus('Auth0 SDK未加载', 'error');
+                    return;
+                }
+                
+                log('✅ Auth0 SDK已加载');
+                log('SDK版本: ' + (Auth0.version || 'unknown'));
+                
+                if (!auth0) {
+                    log('🔄 初始化Auth0...');
+                    auth0 = new Auth0.WebAuth(auth0Config);
+                }
+                
+                log('✅ Auth0初始化完成');
+                log('🚀 调用auth0.authorize...');
+                
+                auth0.authorize({
+                    connection: 'google-oauth2'
+                });
+                
+                log('✅ authorize调用成功，等待跳转...');
+                updateStatus('SDK调用成功，等待跳转...', 'success');
+                
+            } catch (error) {
+                log('❌ SDK测试失败: ' + error.message);
+                updateStatus('SDK测试失败', 'error');
+            }
+        }
+        
+        // 清除所有数据并重测
+        function clearAllAndTest() {
+            log('🗑️ 清除所有本地数据...');
+            
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // 清除cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            log('✅ 数据清除完成');
+            updateStatus('数据已清除，请重新测试', 'success');
+        }
+        
+        // 前往退出登录页
+        function goToLogout() {
+            window.location.href = '/logout.html';
+        }
+        
+        // 检查Auth0回调
+        function checkAuth0Callback() {
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+                log('✅ 检测到Auth0成功回调!');
+                log('回调Hash: ' + window.location.hash);
+                updateStatus('Auth0登录成功！', 'success');
+                
+                // 可以在这里处理token
+                setTimeout(() => {
+                    log('🔄 3秒后跳转回主应用...');
+                    setTimeout(() => {
+                        window.location.href = '/app-demo.html';
+                    }, 3000);
+                }, 1000);
+                
+            } else if (window.location.hash && window.location.hash.includes('error')) {
+                log('❌ Auth0登录错误回调');
+                log('错误Hash: ' + window.location.hash);
+                updateStatus('Auth0登录失败', 'error');
+            }
+        }
+        
+        // 页面加载时检查
+        window.addEventListener('load', function() {
+            log('📱 页面加载完成');
+            log('当前URL: ' + window.location.href);
+            
+            // 检查回调
+            checkAuth0Callback();
+            
+            // 输出配置信息
+            log('🔧 Auth0配置:');
+            log('Domain: ' + auth0Config.domain);
+            log('Client ID: ' + auth0Config.clientId);
+            log('Redirect URI: ' + auth0Config.redirectUri);
+            
+            // 尝试初始化Auth0
+            setTimeout(() => {
+                if (typeof Auth0 !== 'undefined') {
+                    try {
+                        auth0 = new Auth0.WebAuth(auth0Config);
+                        log('✅ Auth0自动初始化成功');
+                    } catch (error) {
+                        log('❌ Auth0自动初始化失败: ' + error.message);
+                    }
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

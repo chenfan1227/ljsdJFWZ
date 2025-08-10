@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台数据修复</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            min-width: 200px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn.success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .log {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 管理后台数据修复工具</h1>
+            <p>解决数据加载失败和认证问题</p>
+        </div>
+        
+        <div class="actions">
+            <button class="btn success" onclick="fixAuth()">🔑 修复认证</button>
+            <button class="btn" onclick="testAPI()">🌐 测试API</button>
+            <button class="btn" onclick="testData()">📊 测试数据</button>
+            <button class="btn danger" onclick="resetAll()">🔄 完全重置</button>
+        </div>
+        
+        <div class="log" id="logArea">
+            <div>🚀 准备就绪，点击按钮开始修复...</div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="goToAdmin()">🏠 返回管理后台</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://192.168.1.29:3001/api';
+        
+        function log(message) {
+            const logArea = document.getElementById('logArea');
+            const time = new Date().toLocaleTimeString();
+            logArea.innerHTML += `<div>[${time}] ${message}</div>`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '';
+        }
+        
+        async function fixAuth() {
+            clearLog();
+            log('🔧 开始修复认证问题...');
+            
+            try {
+                // 第1步：清理旧认证数据
+                log('🗑️ 清理旧认证数据...');
+                const keys = ['adminAuth', 'adminToken', 'adminUser', 'auth_data', 'session_data'];
+                keys.forEach(key => {
+                    localStorage.removeItem(key);
+                    sessionStorage.removeItem(key);
+                });
+                
+                // 第2步：获取新Token
+                log('📝 获取新的认证Token...');
+                const loginResponse = await fetch(`${API_BASE_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error('登录失败: ' + loginResponse.status);
+                }
+                
+                const loginData = await loginResponse.json();
+                log('✅ 登录成功！Token: ' + loginData.token.substring(0, 30) + '...');
+                
+                // 第3步：保存认证信息（多种格式兼容）
+                log('💾 保存认证信息...');
+                const authInfo = {
+                    token: loginData.token,
+                    user: loginData.admin,
+                    admin: loginData.admin,
+                    timestamp: Date.now(),
+                    loginTime: new Date().toISOString()
+                };
+                
+                // 多重保存确保兼容性
+                localStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                localStorage.setItem('adminToken', loginData.token);
+                localStorage.setItem('adminUser', JSON.stringify(loginData.admin));
+                
+                sessionStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                sessionStorage.setItem('adminToken', loginData.token);
+                
+                log('💾 认证信息已保存！');
+                log('🎉 认证修复完成！现在可以正常使用管理后台了。');
+                
+            } catch (error) {
+                log('❌ 认证修复失败: ' + error.message);
+                log('🔧 请检查后端服务是否正常运行。');
+            }
+        }
+        
+        async function testAPI() {
+            clearLog();
+            log('🌐 测试API连接...');
+            
+            try {
+                // 测试健康检查
+                log('📡 测试API健康状态...');
+                const healthResponse = await fetch(`${API_BASE_URL}/health`);
+                if (healthResponse.ok) {
+                    const healthData = await healthResponse.json();
+                    log('✅ API健康检查通过: ' + healthData.message);
+                } else {
+                    throw new Error('API健康检查失败');
+                }
+                
+                // 测试认证
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    log('⚠️ 没有找到Token，请先点击"修复认证"');
+                    return;
+                }
+                
+                log('🔑 测试Token有效性...');
+                const dashboardResponse = await fetch(`${API_BASE_URL}/admin/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (dashboardResponse.ok) {
+                    const dashboardData = await dashboardResponse.json();
+                    log('✅ Token有效，API响应正常');
+                    log('📊 获取到数据: ' + JSON.stringify(dashboardData).substring(0, 100) + '...');
+                } else {
+                    log('❌ Token无效或已过期，状态码: ' + dashboardResponse.status);
+                    log('💡 建议点击"修复认证"重新获取Token');
+                }
+                
+            } catch (error) {
+                log('❌ API测试失败: ' + error.message);
+                log('🔧 请检查网络连接和后端服务状态');
+            }
+        }
+        
+        async function testData() {
+            clearLog();
+            log('📊 测试数据获取...');
+            
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                log('⚠️ 没有Token，请先修复认证');
+                return;
+            }
+            
+            try {
+                const endpoints = [
+                    '/admin/dashboard',
+                    '/admin/admob',
+                    '/admin/revenue/report'
+                ];
+                
+                for (const endpoint of endpoints) {
+                    log(`🔍 测试 ${endpoint}...`);
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        log(`✅ ${endpoint} 数据获取成功`);
+                    } else {
+                        log(`❌ ${endpoint} 获取失败: ${response.status}`);
+                    }
+                }
+                
+                log('🎯 数据测试完成！');
+                
+            } catch (error) {
+                log('❌ 数据测试失败: ' + error.message);
+            }
+        }
+        
+        function resetAll() {
+            if (confirm('确定要完全重置吗？这将清除所有本地数据。')) {
+                clearLog();
+                log('🔄 执行完全重置...');
+                
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                log('🗑️ 所有本地数据已清除');
+                log('🔧 请点击"修复认证"重新设置');
+            }
+        }
+        
+        function goToAdmin() {
+            window.open('admin-dashboard.html', '_self');
+        }
+        
+        // 页面加载时自动检查
+        window.onload = function() {
+            setTimeout(() => {
+                log('🔍 自动检查认证状态...');
+                const token = localStorage.getItem('adminToken');
+                const adminAuth = localStorage.getItem('adminAuth');
+                
+                if (token && adminAuth) {
+                    log('✅ 找到认证数据');
+                    log('💡 如果仍有问题，请点击"测试API"或"修复认证"');
+                } else {
+                    log('⚠️ 未找到认证数据');
+                    log('💡 建议点击"修复认证"');
+                }
+            }, 500);
+        };
+    </script>
+</body>
+</html>
+
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台数据修复</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            min-width: 200px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn.success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .log {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 管理后台数据修复工具</h1>
+            <p>解决数据加载失败和认证问题</p>
+        </div>
+        
+        <div class="actions">
+            <button class="btn success" onclick="fixAuth()">🔑 修复认证</button>
+            <button class="btn" onclick="testAPI()">🌐 测试API</button>
+            <button class="btn" onclick="testData()">📊 测试数据</button>
+            <button class="btn danger" onclick="resetAll()">🔄 完全重置</button>
+        </div>
+        
+        <div class="log" id="logArea">
+            <div>🚀 准备就绪，点击按钮开始修复...</div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="goToAdmin()">🏠 返回管理后台</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://192.168.1.29:3001/api';
+        
+        function log(message) {
+            const logArea = document.getElementById('logArea');
+            const time = new Date().toLocaleTimeString();
+            logArea.innerHTML += `<div>[${time}] ${message}</div>`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '';
+        }
+        
+        async function fixAuth() {
+            clearLog();
+            log('🔧 开始修复认证问题...');
+            
+            try {
+                // 第1步：清理旧认证数据
+                log('🗑️ 清理旧认证数据...');
+                const keys = ['adminAuth', 'adminToken', 'adminUser', 'auth_data', 'session_data'];
+                keys.forEach(key => {
+                    localStorage.removeItem(key);
+                    sessionStorage.removeItem(key);
+                });
+                
+                // 第2步：获取新Token
+                log('📝 获取新的认证Token...');
+                const loginResponse = await fetch(`${API_BASE_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error('登录失败: ' + loginResponse.status);
+                }
+                
+                const loginData = await loginResponse.json();
+                log('✅ 登录成功！Token: ' + loginData.token.substring(0, 30) + '...');
+                
+                // 第3步：保存认证信息（多种格式兼容）
+                log('💾 保存认证信息...');
+                const authInfo = {
+                    token: loginData.token,
+                    user: loginData.admin,
+                    admin: loginData.admin,
+                    timestamp: Date.now(),
+                    loginTime: new Date().toISOString()
+                };
+                
+                // 多重保存确保兼容性
+                localStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                localStorage.setItem('adminToken', loginData.token);
+                localStorage.setItem('adminUser', JSON.stringify(loginData.admin));
+                
+                sessionStorage.setItem('adminAuth', JSON.stringify(authInfo));
+                sessionStorage.setItem('adminToken', loginData.token);
+                
+                log('💾 认证信息已保存！');
+                log('🎉 认证修复完成！现在可以正常使用管理后台了。');
+                
+            } catch (error) {
+                log('❌ 认证修复失败: ' + error.message);
+                log('🔧 请检查后端服务是否正常运行。');
+            }
+        }
+        
+        async function testAPI() {
+            clearLog();
+            log('🌐 测试API连接...');
+            
+            try {
+                // 测试健康检查
+                log('📡 测试API健康状态...');
+                const healthResponse = await fetch(`${API_BASE_URL}/health`);
+                if (healthResponse.ok) {
+                    const healthData = await healthResponse.json();
+                    log('✅ API健康检查通过: ' + healthData.message);
+                } else {
+                    throw new Error('API健康检查失败');
+                }
+                
+                // 测试认证
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    log('⚠️ 没有找到Token，请先点击"修复认证"');
+                    return;
+                }
+                
+                log('🔑 测试Token有效性...');
+                const dashboardResponse = await fetch(`${API_BASE_URL}/admin/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (dashboardResponse.ok) {
+                    const dashboardData = await dashboardResponse.json();
+                    log('✅ Token有效，API响应正常');
+                    log('📊 获取到数据: ' + JSON.stringify(dashboardData).substring(0, 100) + '...');
+                } else {
+                    log('❌ Token无效或已过期，状态码: ' + dashboardResponse.status);
+                    log('💡 建议点击"修复认证"重新获取Token');
+                }
+                
+            } catch (error) {
+                log('❌ API测试失败: ' + error.message);
+                log('🔧 请检查网络连接和后端服务状态');
+            }
+        }
+        
+        async function testData() {
+            clearLog();
+            log('📊 测试数据获取...');
+            
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                log('⚠️ 没有Token，请先修复认证');
+                return;
+            }
+            
+            try {
+                const endpoints = [
+                    '/admin/dashboard',
+                    '/admin/admob',
+                    '/admin/revenue/report'
+                ];
+                
+                for (const endpoint of endpoints) {
+                    log(`🔍 测试 ${endpoint}...`);
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        log(`✅ ${endpoint} 数据获取成功`);
+                    } else {
+                        log(`❌ ${endpoint} 获取失败: ${response.status}`);
+                    }
+                }
+                
+                log('🎯 数据测试完成！');
+                
+            } catch (error) {
+                log('❌ 数据测试失败: ' + error.message);
+            }
+        }
+        
+        function resetAll() {
+            if (confirm('确定要完全重置吗？这将清除所有本地数据。')) {
+                clearLog();
+                log('🔄 执行完全重置...');
+                
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                log('🗑️ 所有本地数据已清除');
+                log('🔧 请点击"修复认证"重新设置');
+            }
+        }
+        
+        function goToAdmin() {
+            window.open('admin-dashboard.html', '_self');
+        }
+        
+        // 页面加载时自动检查
+        window.onload = function() {
+            setTimeout(() => {
+                log('🔍 自动检查认证状态...');
+                const token = localStorage.getItem('adminToken');
+                const adminAuth = localStorage.getItem('adminAuth');
+                
+                if (token && adminAuth) {
+                    log('✅ 找到认证数据');
+                    log('💡 如果仍有问题，请点击"测试API"或"修复认证"');
+                } else {
+                    log('⚠️ 未找到认证数据');
+                    log('💡 建议点击"修复认证"');
+                }
+            }, 500);
+        };
+    </script>
+</body>
+</html>

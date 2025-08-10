@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth0 测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .btn { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Auth0 连接测试</h1>
+    
+    <button class="btn" onclick="testAuth0Init()">测试Auth0初始化</button>
+    <button class="btn" onclick="testAuth0Login()">测试Auth0登录</button>
+    <button class="btn" onclick="testDirectCall()">直接调用authorize</button>
+    <button class="btn" onclick="clearLog()">清除日志</button>
+    
+    <div id="log" class="log"></div>
+
+    <!-- Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0/9.23.2/auth0.min.js"></script>
+    
+    <script>
+        let logDiv = document.getElementById('log');
+        
+        function log(message) {
+            console.log(message);
+            logDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            logDiv.textContent = '';
+        }
+        
+        // Auth0配置
+        const auth0Config = {
+            domain: 'dev-pnok5gjc2y8dk2eb.us.auth0.com',
+            clientId: 'oqtEjprQkidI3OxQT4dNkRPZNsaGQQeA',
+            redirectUri: window.location.origin + '/test-auth0.html',
+            responseType: 'token id_token',
+            scope: 'openid profile email'
+        };
+        
+        let auth0;
+        
+        function testAuth0Init() {
+            log('开始测试Auth0初始化...');
+            log('配置: ' + JSON.stringify(auth0Config, null, 2));
+            
+            try {
+                if (typeof Auth0 === 'undefined') {
+                    log('❌ Auth0 SDK未加载');
+                    return;
+                }
+                
+                log('✅ Auth0 SDK已加载');
+                log('Auth0版本: ' + (Auth0.version || 'unknown'));
+                
+                auth0 = new Auth0.WebAuth(auth0Config);
+                log('✅ Auth0.WebAuth初始化成功');
+                log('auth0对象: ' + typeof auth0);
+                
+            } catch (error) {
+                log('❌ Auth0初始化失败: ' + error.message);
+                log('错误详情: ' + error.stack);
+            }
+        }
+        
+        function testAuth0Login() {
+            log('开始测试Auth0登录...');
+            
+            if (!auth0) {
+                log('❌ Auth0未初始化，先运行初始化测试');
+                return;
+            }
+            
+            try {
+                log('调用auth0.authorize...');
+                auth0.authorize({
+                    connection: 'google-oauth2'
+                });
+                log('✅ authorize调用成功，应该会跳转...');
+            } catch (error) {
+                log('❌ authorize调用失败: ' + error.message);
+                log('错误详情: ' + error.stack);
+            }
+        }
+        
+        function testDirectCall() {
+            log('测试直接调用authorize...');
+            
+            try {
+                // 构造Auth0登录URL
+                const loginUrl = `https://${auth0Config.domain}/authorize?` +
+                    `response_type=${auth0Config.responseType}&` +
+                    `client_id=${auth0Config.clientId}&` +
+                    `redirect_uri=${encodeURIComponent(auth0Config.redirectUri)}&` +
+                    `scope=${encodeURIComponent(auth0Config.scope)}&` +
+                    `connection=google-oauth2`;
+                
+                log('构造的URL: ' + loginUrl);
+                log('尝试直接跳转...');
+                
+                window.location.href = loginUrl;
+                
+            } catch (error) {
+                log('❌ 直接调用失败: ' + error.message);
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.addEventListener('load', function() {
+            log('页面加载完成');
+            log('当前URL: ' + window.location.href);
+            log('User Agent: ' + navigator.userAgent);
+            
+            // 检查是否有Auth0回调
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+                log('✅ 检测到Auth0登录成功回调!');
+                log('Hash: ' + window.location.hash);
+            } else if (window.location.hash && window.location.hash.includes('error')) {
+                log('❌ 检测到Auth0登录错误回调');
+                log('Hash: ' + window.location.hash);
+            }
+            
+            // 自动初始化
+            setTimeout(testAuth0Init, 100);
+        });
+    </script>
+</body>
+</html>

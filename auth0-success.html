@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth0登录成功</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            margin: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">🎉</div>
+        <h1>Auth0登录成功！</h1>
+        
+        <p>恭喜！您已经成功通过Auth0登录。</p>
+        
+        <div class="user-info" id="userInfo">
+            <strong>用户信息:</strong><br>
+            <span id="userDetails">正在获取...</span>
+        </div>
+        
+        <a href="/app-demo.html" class="btn">
+            🏠 返回主应用
+        </a>
+        
+        <a href="/logout.html" class="btn">
+            🚪 退出登录
+        </a>
+    </div>
+
+    <script>
+        // 解析Auth0回调数据
+        function parseAuth0Callback() {
+            const hash = window.location.hash;
+            const userDetails = document.getElementById('userDetails');
+            
+            if (hash && hash.includes('access_token')) {
+                // 解析hash中的参数
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                const idToken = params.get('id_token');
+                
+                if (accessToken) {
+                    userDetails.innerHTML = `
+                        ✅ Access Token: ${accessToken.substring(0, 20)}...<br>
+                        ✅ ID Token: ${idToken ? idToken.substring(0, 20) + '...' : '无'}<br>
+                        ✅ 登录时间: ${new Date().toLocaleString()}<br>
+                        ✅ 状态: 已成功验证
+                    `;
+                    
+                    // 存储token用于后续使用
+                    localStorage.setItem('auth0_access_token', accessToken);
+                    if (idToken) {
+                        localStorage.setItem('auth0_id_token', idToken);
+                    }
+                    localStorage.setItem('isLoggedIn', 'true');
+                    
+                } else {
+                    userDetails.innerHTML = '❌ 未找到有效的访问令牌';
+                }
+            } else if (hash && hash.includes('error')) {
+                const params = new URLSearchParams(hash.substring(1));
+                const error = params.get('error');
+                const errorDescription = params.get('error_description');
+                
+                userDetails.innerHTML = `
+                    ❌ 登录错误: ${error}<br>
+                    ❌ 错误描述: ${errorDescription}
+                `;
+            } else {
+                userDetails.innerHTML = '❌ 未检测到Auth0回调数据';
+            }
+        }
+        
+        // 页面加载时解析回调
+        window.addEventListener('load', parseAuth0Callback);
+    </script>
+</body>
+</html>
