@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>积分宝 - 管理后台</title>
+    <script>
+        // 关闭所有控制台输出（生产环境）
+        (function(){
+            try { const n=function(){}; console.log=n; console.error=n; console.warn=n; console.debug=n; console.info=n; } catch(_) {}
+        })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {

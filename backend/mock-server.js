@@ -298,7 +298,325 @@ const requireSuperAdmin = (req, res, next) => {
     next();
 };
 
+// 管理员权限检查 (manager 或 super_admin)
+const requireManager = (req, res, next) => {
+    if (!req.admin || !['manager', 'super_admin'].includes(req.admin.role)) {
+        return res.status(403).json({ 
+            error: '需要管理员权限',
+            required_role: 'manager_or_super_admin',
+            current_role: req.admin?.role || 'none'
+        });
+    }
+    next();
+};
+
 // ===================== 认证API =====================
+
+// 邮箱密码登录
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: '邮箱和密码不能为空'
+            });
+        }
+        
+        // 查找用户
+        const user = mockData.appUsers.find(u => u.email === email);
+        
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: '邮箱或密码错误'
+            });
+        }
+        
+        // 模拟密码验证（实际应用中应该验证加密密码）
+        if (user.password && user.password !== password) {
+            return res.status(401).json({
+                success: false,
+                message: '邮箱或密码错误'
+            });
+        }
+        
+        // 生成JWT token
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        // 更新最后登录时间
+        user.last_login = new Date().toISOString();
+        
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    points: user.points_balance,
+                    avatar: user.avatar,
+                    membership_level: user.membership_level,
+                    is_vip: user.is_vip
+                },
+                token
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 用户注册
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, email, password, referralCode } = req.body;
+        
+        if (!username || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: '用户名、邮箱和密码不能为空'
+            });
+        }
+        
+        // 检查邮箱是否已存在
+        const existingUser = mockData.appUsers.find(u => u.email === email);
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: '该邮箱已注册'
+            });
+        }
+        
+        // 生成验证码
+        const verificationCode = Math.random().toString().substr(2, 6);
+        
+        // 临时存储待验证用户
+        const tempUser = {
+            username,
+            email,
+            password,
+            referralCode,
+            verificationCode,
+            createdAt: Date.now()
+        };
+        
+        // 模拟存储（实际应用中应该存储到Redis或数据库）
+        if (!global.tempUsers) global.tempUsers = new Map();
+        global.tempUsers.set(email, tempUser);
+        
+        // 模拟发送邮件（实际应用中应该发送真实邮件）
+        console.log(`📧 发送验证码到 ${email}: ${verificationCode}`);
+        
+        res.json({
+            success: true,
+            message: '注册信息已提交，验证码已发送到您的邮箱'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 邮箱验证
+app.post('/api/auth/verify-email', async (req, res) => {
+    try {
+        const { email, code } = req.body;
+        
+        if (!email || !code) {
+            return res.status(400).json({
+                success: false,
+                message: '邮箱和验证码不能为空'
+            });
+        }
+        
+        // 获取临时用户信息
+        if (!global.tempUsers) global.tempUsers = new Map();
+        const tempUser = global.tempUsers.get(email);
+        
+        if (!tempUser) {
+            return res.status(400).json({
+                success: false,
+                message: '验证码已过期，请重新注册'
+            });
+        }
+        
+        if (tempUser.verificationCode !== code) {
+            return res.status(400).json({
+                success: false,
+                message: '验证码错误'
+            });
+        }
+        
+        // 创建正式用户
+        const userId = 'user_' + Date.now();
+        const newUser = {
+            id: userId,
+            username: tempUser.username,
+            email: tempUser.email,
+            password: tempUser.password,
+            points_balance: tempUser.referralCode ? 15000 : 10000, // 推荐奖励
+            total_earned: tempUser.referralCode ? 15000 : 10000,
+            membership_level: 'basic',
+            is_vip: false,
+            avatar: '👤',
+            created_at: new Date().toISOString(),
+            last_login: new Date().toISOString(),
+            email_verified: true
+        };
+        
+        mockData.appUsers.push(newUser);
+        
+        // 添加注册奖励交易记录
+        mockData.pointsTransactions.push({
+            id: 'tx_' + Date.now(),
+            user_id: userId,
+            points_change: tempUser.referralCode ? 15000 : 10000,
+            transaction_type: 'registration_bonus',
+            description: tempUser.referralCode ? '新用户注册奖励（推荐）' : '新用户注册奖励',
+            created_at: new Date().toISOString()
+        });
+        
+        // 生成JWT token
+        const token = jwt.sign(
+            { userId: newUser.id, email: newUser.email },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        // 清除临时用户信息
+        global.tempUsers.delete(email);
+        
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    id: newUser.id,
+                    username: newUser.username,
+                    email: newUser.email,
+                    points: newUser.points_balance,
+                    avatar: newUser.avatar,
+                    membership_level: newUser.membership_level,
+                    is_vip: newUser.is_vip
+                },
+                token
+            }
+        });
+        
+        console.log(`✅ 新用户注册完成: ${newUser.username} (${newUser.email})`);
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 重新发送验证码
+app.post('/api/auth/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: '邮箱不能为空'
+            });
+        }
+        
+        // 获取临时用户信息
+        if (!global.tempUsers) global.tempUsers = new Map();
+        const tempUser = global.tempUsers.get(email);
+        
+        if (!tempUser) {
+            return res.status(400).json({
+                success: false,
+                message: '请先注册'
+            });
+        }
+        
+        // 重新生成验证码
+        const verificationCode = Math.random().toString().substr(2, 6);
+        tempUser.verificationCode = verificationCode;
+        tempUser.createdAt = Date.now();
+        
+        // 模拟发送邮件
+        console.log(`📧 重新发送验证码到 ${email}: ${verificationCode}`);
+        
+        res.json({
+            success: true,
+            message: '验证码已重新发送'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 忘记密码
+app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: '邮箱不能为空'
+            });
+        }
+        
+        // 查找用户
+        const user = mockData.appUsers.find(u => u.email === email);
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '该邮箱未注册'
+            });
+        }
+        
+        // 生成重置token
+        const resetToken = Math.random().toString(36).substr(2, 32);
+        
+        // 模拟存储重置token（实际应用中应该存储到数据库）
+        if (!global.resetTokens) global.resetTokens = new Map();
+        global.resetTokens.set(resetToken, {
+            email,
+            createdAt: Date.now()
+        });
+        
+        // 模拟发送邮件
+        const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
+        console.log(`📧 发送密码重置链接到 ${email}: ${resetLink}`);
+        
+        res.json({
+            success: true,
+            message: '密码重置链接已发送到您的邮箱'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
 
 // Auth0用户同步
 app.post('/api/auth/auth0-sync', verifyAuth0Token, async (req, res) => {
@@ -832,6 +1150,7 @@ app.get('/api/app/user/points', verifyAuth0Token, (req, res) => {
             // 如果用户不存在，创建一个默认用户
             user = {
                 id: userId,
+                user_id: userId,
                 auth0_id: userId,
                 username: req.user.name || 'New User',
                 email: req.user.email || 'user@example.com',
@@ -867,6 +1186,20 @@ app.get('/api/app/user/points', verifyAuth0Token, (req, res) => {
         
     } catch (error) {
         res.status(401).json({ success: false, error: '认证失败' });
+    }
+});
+
+// App端获取积分交易记录
+app.get('/api/app/user/transactions', verifyAuth0Token, (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const list = mockData.pointsTransactions
+            .filter(t => t.user_id === userId)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 50);
+        return res.json({ success: true, data: list });
+    } catch (error) {
+        return res.status(401).json({ success: false, error: '认证失败' });
     }
 });
 
@@ -1060,6 +1393,917 @@ app.post('/api/app/earn/daily-checkin', verifyAuth0Token, (req, res) => {
         
     } catch (error) {
         res.status(401).json({ success: false, error: '认证失败' });
+    }
+});
+
+// ===================== 积分增强功能API =====================
+
+// 检查积分过期
+app.post('/api/points/check-expiration', authenticateToken, async (req, res) => {
+    try {
+        const { userId } = req.body;
+        
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: '用户ID不能为空'
+            });
+        }
+        
+        // 查找用户
+        const user = mockData.appUsers.find(u => u.id === userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '用户不存在'
+            });
+        }
+        
+        // 模拟检查过期积分（实际应用中应该检查数据库中的积分记录）
+        const expiredPoints = Math.floor(Math.random() * 500); // 随机生成过期积分
+        const newBalance = Math.max(0, user.points_balance - expiredPoints);
+        
+        if (expiredPoints > 0) {
+            // 更新用户积分
+            user.points_balance = newBalance;
+            
+            // 添加过期记录
+            mockData.pointsTransactions.push({
+                id: 'tx_' + Date.now(),
+                user_id: userId,
+                points_change: -expiredPoints,
+                transaction_type: 'expiration',
+                description: '积分过期',
+                created_at: new Date().toISOString()
+            });
+        }
+        
+        res.json({
+            success: true,
+            data: {
+                expiredPoints,
+                newBalance
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 积分转赠
+app.post('/api/points/transfer', authenticateToken, async (req, res) => {
+    try {
+        const { fromUserId, toUserIdentifier, amount, message } = req.body;
+        
+        if (!fromUserId || !toUserIdentifier || !amount) {
+            return res.status(400).json({
+                success: false,
+                message: '转赠信息不完整'
+            });
+        }
+        
+        if (amount < 100) {
+            return res.status(400).json({
+                success: false,
+                message: '单次最少转赠100积分'
+            });
+        }
+        
+        // 查找转出用户
+        const fromUser = mockData.appUsers.find(u => u.id === fromUserId);
+        if (!fromUser) {
+            return res.status(404).json({
+                success: false,
+                message: '转出用户不存在'
+            });
+        }
+        
+        if (fromUser.points_balance < amount) {
+            return res.status(400).json({
+                success: false,
+                message: '积分余额不足'
+            });
+        }
+        
+        // 查找接收用户（支持邮箱或用户ID）
+        const toUser = mockData.appUsers.find(u => 
+            u.id === toUserIdentifier || u.email === toUserIdentifier
+        );
+        
+        if (!toUser) {
+            return res.status(404).json({
+                success: false,
+                message: '接收用户不存在'
+            });
+        }
+        
+        if (fromUser.id === toUser.id) {
+            return res.status(400).json({
+                success: false,
+                message: '不能向自己转赠积分'
+            });
+        }
+        
+        // 执行转赠
+        fromUser.points_balance -= amount;
+        toUser.points_balance += amount;
+        
+        const transferId = 'transfer_' + Date.now();
+        
+        // 记录转出交易
+        mockData.pointsTransactions.push({
+            id: 'tx_out_' + Date.now(),
+            user_id: fromUserId,
+            points_change: -amount,
+            transaction_type: 'transfer_out',
+            description: `转赠给 ${toUser.username || toUser.email}${message ? ': ' + message : ''}`,
+            metadata: { transferId, recipient: toUser.id },
+            created_at: new Date().toISOString()
+        });
+        
+        // 记录转入交易
+        mockData.pointsTransactions.push({
+            id: 'tx_in_' + Date.now(),
+            user_id: toUser.id,
+            points_change: amount,
+            transaction_type: 'transfer_in',
+            description: `来自 ${fromUser.username || fromUser.email} 的转赠${message ? ': ' + message : ''}`,
+            metadata: { transferId, sender: fromUserId },
+            created_at: new Date().toISOString()
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                newBalance: fromUser.points_balance,
+                transferId
+            }
+        });
+        
+        console.log(`✅ 积分转赠: ${fromUser.username} -> ${toUser.username}, ${amount}积分`);
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 获取商城商品列表（App端可访问）
+app.get('/api/shop/items', verifyAuth0Token, async (req, res) => {
+    try {
+        // 模拟商城商品数据
+        const shopItems = [
+            {
+                id: 'item_1',
+                name: '10元话费券',
+                description: '中国移动/联通/电信通用话费券',
+                price: 1000,
+                originalPrice: 1200,
+                discount: 15,
+                category: 'coupon',
+                stock: 50,
+                image: null
+            },
+            {
+                id: 'item_2',
+                name: '星巴克咖啡券',
+                description: '星巴克任意饮品券，全国门店通用',
+                price: 2800,
+                category: 'coupon',
+                stock: 20,
+                image: null
+            },
+            {
+                id: 'item_3',
+                name: '1000积分',
+                description: '直接获得1000积分奖励',
+                price: 900,
+                category: 'virtual',
+                stock: 100,
+                image: null
+            },
+            {
+                id: 'item_4',
+                name: 'VIP会员7天',
+                description: '享受VIP特权，无限制赚取积分',
+                price: 1500,
+                category: 'virtual',
+                stock: 30,
+                image: null
+            },
+            {
+                id: 'item_5',
+                name: '小米充电宝',
+                description: '小米10000mAh充电宝，支持快充',
+                price: 8800,
+                category: 'physical',
+                stock: 5,
+                image: null
+            },
+            {
+                id: 'item_6',
+                name: 'AirPods耳机',
+                description: 'Apple AirPods 3代无线耳机',
+                price: 15000,
+                category: 'physical',
+                stock: 2,
+                image: null
+            }
+        ];
+        
+        res.json({
+            success: true,
+            data: shopItems
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 购买商品（App端可访问）
+app.post('/api/shop/buy', verifyAuth0Token, async (req, res) => {
+    try {
+        let { userId, itemId } = req.body;
+        if (!userId && req.user?.sub) {
+            userId = req.user.sub;
+        }
+        
+        if (!userId || !itemId) {
+            return res.status(400).json({
+                success: false,
+                message: '购买信息不完整'
+            });
+        }
+        
+        // 查找用户
+        const user = mockData.appUsers.find(u => u.id === userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '用户不存在'
+            });
+        }
+        
+        // 模拟商品信息（实际应用中应该从数据库获取）
+        const items = [
+            { id: 'item_1', price: 1000, name: '10元话费券', stock: 50 },
+            { id: 'item_2', price: 2800, name: '星巴克咖啡券', stock: 20 },
+            { id: 'item_3', price: 900, name: '1000积分', stock: 100 },
+            { id: 'item_4', price: 1500, name: 'VIP会员7天', stock: 30 },
+            { id: 'item_5', price: 8800, name: '小米充电宝', stock: 5 },
+            { id: 'item_6', price: 15000, name: 'AirPods耳机', stock: 2 }
+        ];
+        
+        const item = items.find(i => i.id === itemId);
+        if (!item) {
+            return res.status(404).json({
+                success: false,
+                message: '商品不存在'
+            });
+        }
+        
+        if (item.stock <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: '商品缺货'
+            });
+        }
+        
+        if (user.points_balance < item.price) {
+            return res.status(400).json({
+                success: false,
+                message: '积分不足'
+            });
+        }
+        
+        // 扣除积分
+        user.points_balance -= item.price;
+        
+        // 减少库存（模拟）
+        item.stock -= 1;
+        
+        // 记录交易
+        mockData.pointsTransactions.push({
+            id: 'tx_' + Date.now(),
+            user_id: userId,
+            points_change: -item.price,
+            transaction_type: 'purchase',
+            description: `兑换商品: ${item.name}`,
+            metadata: { itemId, itemName: item.name },
+            created_at: new Date().toISOString()
+        });
+        
+        // 如果是积分商品，直接发放积分
+        if (itemId === 'item_3') {
+            user.points_balance += 1000;
+            mockData.pointsTransactions.push({
+                id: 'tx_bonus_' + Date.now(),
+                user_id: userId,
+                points_change: 1000,
+                transaction_type: 'purchase_bonus',
+                description: '商品奖励: 1000积分',
+                created_at: new Date().toISOString()
+            });
+        }
+        
+        res.json({
+            success: true,
+            data: {
+                newBalance: user.points_balance,
+                item: item.name
+            }
+        });
+        
+        console.log(`✅ 商品兑换: ${user.username} 兑换 ${item.name}, 花费${item.price}积分`);
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// ===================== 提现管理API =====================
+
+// 提交提现申请
+app.post('/api/withdrawal/request', authenticateToken, async (req, res) => {
+    try {
+        const { userId, amount, method, accountInfo, cryptoType, walletAddress } = req.body;
+        
+        if (!userId || !amount || (!method && !cryptoType)) {
+            return res.status(400).json({
+                success: false,
+                message: '提现信息不完整'
+            });
+        }
+        
+        // 查找用户
+        const user = mockData.appUsers.find(u => u.id === userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '用户不存在'
+            });
+        }
+        
+        // 计算所需积分和手续费
+        let pointsNeeded, feeAmount, actualAmount;
+        
+        if (cryptoType) {
+            // 加密货币提现
+            const exchangeRates = {
+                'USDT': 100,    // 100积分 = 1 USDT
+                'USDC': 100,    // 100积分 = 1 USDC  
+                'BTC': 6500000, // 6,500,000积分 = 1 BTC
+                'ETH': 350000   // 350,000积分 = 1 ETH
+            };
+            
+            const fees = {
+                'USDT': 1,      // 1 USDT 手续费
+                'USDC': 2,      // 2 USDC 手续费
+                'BTC': 0.0001,  // 0.0001 BTC 手续费
+                'ETH': 0.002    // 0.002 ETH 手续费
+            };
+            
+            const rate = exchangeRates[cryptoType];
+            pointsNeeded = Math.ceil(amount * rate);
+            feeAmount = fees[cryptoType];
+            actualAmount = amount - feeAmount;
+        } else {
+            // 法币提现
+            pointsNeeded = amount * 1000; // 1000积分 = $1
+            feeAmount = 0.50; // $0.50 手续费
+            actualAmount = amount - feeAmount;
+        }
+        
+        if (user.points_balance < pointsNeeded) {
+            return res.status(400).json({
+                success: false,
+                message: '积分余额不足'
+            });
+        }
+        
+        if (amount < 10) {
+            return res.status(400).json({
+                success: false,
+                message: '最低提现金额为10美元或等值加密货币'
+            });
+        }
+        
+        // 创建提现记录
+        const requestId = 'wd_' + Date.now();
+        const withdrawalRequest = {
+            id: requestId,
+            user_id: userId,
+            amount: amount,
+            points_amount: pointsNeeded,
+            method: method || cryptoType,
+            account_info: accountInfo || walletAddress,
+            fee_amount: feeAmount,
+            actual_amount: actualAmount,
+            status: 'pending',
+            created_at: new Date().toISOString(),
+            estimated_completion: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() // 3天后
+        };
+        
+        // 存储提现记录
+        if (!mockData.withdrawalRequests) mockData.withdrawalRequests = [];
+        mockData.withdrawalRequests.push(withdrawalRequest);
+        
+        // 冻结用户积分
+        user.points_balance -= pointsNeeded;
+        
+        // 记录积分交易
+        mockData.pointsTransactions.push({
+            id: 'tx_wd_' + Date.now(),
+            user_id: userId,
+            points_change: -pointsNeeded,
+            transaction_type: 'withdrawal_pending',
+            description: `提现申请: ${actualAmount} ${method || cryptoType}`,
+            metadata: { 
+                withdrawalId: requestId,
+                method: method || cryptoType,
+                amount: actualAmount 
+            },
+            created_at: new Date().toISOString()
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                requestId,
+                estimatedCompletion: withdrawalRequest.estimated_completion,
+                actualAmount
+            },
+            message: '提现申请已提交，请等待审核'
+        });
+        
+        console.log(`✅ 提现申请: ${user.username} 申请提现 ${actualAmount} ${method || cryptoType}`);
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 获取提现记录
+app.get('/api/withdrawal/history', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        
+        if (!mockData.withdrawalRequests) mockData.withdrawalRequests = [];
+        
+        const userWithdrawals = mockData.withdrawalRequests
+            .filter(w => w.user_id === userId)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        res.json({
+            success: true,
+            data: userWithdrawals
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 管理员获取提现申请列表
+app.get('/api/admin/withdrawals', [authenticateToken, requireManager], async (req, res) => {
+    try {
+        const { status, page = 1, limit = 10 } = req.query;
+        
+        if (!mockData.withdrawalRequests) mockData.withdrawalRequests = [];
+        
+        let withdrawals = mockData.withdrawalRequests;
+        
+        // 状态筛选
+        if (status && status !== 'all') {
+            withdrawals = withdrawals.filter(w => w.status === status);
+        }
+        
+        // 排序
+        withdrawals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        // 分页
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + parseInt(limit);
+        const paginatedWithdrawals = withdrawals.slice(startIndex, endIndex);
+        
+        // 添加用户信息
+        const enrichedWithdrawals = paginatedWithdrawals.map(w => {
+            const user = mockData.appUsers.find(u => u.id === w.user_id);
+            return {
+                ...w,
+                username: user?.username || 'Unknown',
+                user_email: user?.email || 'Unknown'
+            };
+        });
+        
+        res.json({
+            success: true,
+            data: {
+                withdrawals: enrichedWithdrawals,
+                total: withdrawals.length,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(withdrawals.length / limit)
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 管理员审核提现申请
+app.post('/api/admin/withdrawals/:requestId/review', [authenticateToken, requireManager], async (req, res) => {
+    try {
+        const { requestId } = req.params;
+        const { action, notes, transactionHash } = req.body;
+        
+        if (!['approve', 'reject'].includes(action)) {
+            return res.status(400).json({
+                success: false,
+                message: '无效的操作'
+            });
+        }
+        
+        if (!mockData.withdrawalRequests) mockData.withdrawalRequests = [];
+        
+        const withdrawal = mockData.withdrawalRequests.find(w => w.id === requestId);
+        if (!withdrawal) {
+            return res.status(404).json({
+                success: false,
+                message: '提现申请不存在'
+            });
+        }
+        
+        if (withdrawal.status !== 'pending') {
+            return res.status(400).json({
+                success: false,
+                message: '该申请已被处理'
+            });
+        }
+        
+        const user = mockData.appUsers.find(u => u.id === withdrawal.user_id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '用户不存在'
+            });
+        }
+        
+        if (action === 'approve') {
+            // 批准提现
+            withdrawal.status = 'processing';
+            withdrawal.admin_notes = notes;
+            withdrawal.processed_by = req.user.username;
+            withdrawal.processed_at = new Date().toISOString();
+            withdrawal.transaction_hash = transactionHash;
+            
+            // 更新积分交易状态
+            const transaction = mockData.pointsTransactions.find(t => 
+                t.metadata?.withdrawalId === requestId
+            );
+            if (transaction) {
+                transaction.transaction_type = 'withdrawal_approved';
+                transaction.description = `提现已批准: ${withdrawal.actual_amount} ${withdrawal.method}`;
+            }
+            
+            // 模拟处理后自动完成
+            setTimeout(() => {
+                withdrawal.status = 'completed';
+                console.log(`✅ 提现完成: ${requestId}`);
+            }, 5000);
+            
+            console.log(`✅ 提现批准: ${req.user.username} 批准了 ${user.username} 的提现申请`);
+            
+        } else {
+            // 拒绝提现，返还积分
+            withdrawal.status = 'rejected';
+            withdrawal.admin_notes = notes;
+            withdrawal.processed_by = req.user.username;
+            withdrawal.processed_at = new Date().toISOString();
+            
+            // 返还积分
+            user.points_balance += withdrawal.points_amount;
+            
+            // 添加退款记录
+            mockData.pointsTransactions.push({
+                id: 'tx_refund_' + Date.now(),
+                user_id: withdrawal.user_id,
+                points_change: withdrawal.points_amount,
+                transaction_type: 'withdrawal_refund',
+                description: `提现被拒绝，积分退还: ${notes || '未提供原因'}`,
+                metadata: { 
+                    withdrawalId: requestId,
+                    originalAmount: withdrawal.actual_amount 
+                },
+                created_at: new Date().toISOString()
+            });
+            
+            console.log(`❌ 提现拒绝: ${req.user.username} 拒绝了 ${user.username} 的提现申请`);
+        }
+        
+        res.json({
+            success: true,
+            data: withdrawal,
+            message: action === 'approve' ? '提现申请已批准' : '提现申请已拒绝'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 获取提现统计
+app.get('/api/admin/withdrawals/stats', [authenticateToken, requireManager], async (req, res) => {
+    try {
+        if (!mockData.withdrawalRequests) mockData.withdrawalRequests = [];
+        
+        const today = new Date().toISOString().split('T')[0];
+        const thisMonth = new Date().toISOString().substring(0, 7);
+        
+        const stats = {
+            total: mockData.withdrawalRequests.length,
+            pending: mockData.withdrawalRequests.filter(w => w.status === 'pending').length,
+            processing: mockData.withdrawalRequests.filter(w => w.status === 'processing').length,
+            completed: mockData.withdrawalRequests.filter(w => w.status === 'completed').length,
+            rejected: mockData.withdrawalRequests.filter(w => w.status === 'rejected').length,
+            todayAmount: mockData.withdrawalRequests
+                .filter(w => w.created_at.startsWith(today) && w.status === 'completed')
+                .reduce((sum, w) => sum + w.actual_amount, 0),
+            monthlyAmount: mockData.withdrawalRequests
+                .filter(w => w.created_at.startsWith(thisMonth) && w.status === 'completed')
+                .reduce((sum, w) => sum + w.actual_amount, 0)
+        };
+        
+        res.json({
+            success: true,
+            data: stats
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// ===================== 会员系统API =====================
+
+// 会员升级
+app.post('/api/membership/upgrade', authenticateToken, async (req, res) => {
+    try {
+        const { userId, level, paymentMethod } = req.body;
+        
+        if (!userId || !level || !paymentMethod) {
+            return res.status(400).json({
+                success: false,
+                message: '升级信息不完整'
+            });
+        }
+        
+        // 查找用户
+        const user = mockData.appUsers.find(u => u.id === userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '用户不存在'
+            });
+        }
+        
+        // 会员等级和价格配置
+        const membershipPlans = {
+            'bronze': { name: '青铜会员', price: 9.9, points: 1000, benefits: { pointsBonus: 10, adFree: true, withdrawDiscount: 5 } },
+            'silver': { name: '白银会员', price: 29.9, points: 3000, benefits: { pointsBonus: 25, adFree: true, withdrawDiscount: 10 } },
+            'gold': { name: '黄金会员', price: 59.9, points: 6000, benefits: { pointsBonus: 35, adFree: true, withdrawDiscount: 20 } },
+            'diamond': { name: '钻石会员', price: 99.9, points: 10000, benefits: { pointsBonus: 50, adFree: true, withdrawDiscount: 100 } }
+        };
+        
+        const plan = membershipPlans[level];
+        if (!plan) {
+            return res.status(400).json({
+                success: false,
+                message: '无效的会员等级'
+            });
+        }
+        
+        // 检查当前等级
+        const currentLevel = user.membership_level || 'basic';
+        const levelOrder = ['basic', 'bronze', 'silver', 'gold', 'diamond'];
+        if (levelOrder.indexOf(currentLevel) >= levelOrder.indexOf(level)) {
+            return res.status(400).json({
+                success: false,
+                message: '您已经是该等级或更高等级的会员'
+            });
+        }
+        
+        let newBalance = user.points_balance;
+        
+        if (paymentMethod === 'points') {
+            // 积分支付
+            if (user.points_balance < plan.points) {
+                return res.status(400).json({
+                    success: false,
+                    message: '积分余额不足'
+                });
+            }
+            
+            // 扣除积分
+            newBalance = user.points_balance - plan.points;
+            user.points_balance = newBalance;
+            
+            // 记录积分交易
+            mockData.pointsTransactions.push({
+                id: 'tx_membership_' + Date.now(),
+                user_id: userId,
+                points_change: -plan.points,
+                transaction_type: 'membership_upgrade',
+                description: `升级到${plan.name}`,
+                metadata: { 
+                    membershipLevel: level,
+                    paymentMethod: paymentMethod 
+                },
+                created_at: new Date().toISOString()
+            });
+        } else {
+            // 现金支付（模拟）
+            console.log(`💳 模拟现金支付: ¥${plan.price} 升级到${plan.name}`);
+        }
+        
+        // 更新用户会员等级
+        user.membership_level = level;
+        user.membership_expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30天后过期
+        
+        // 创建会员订阅记录
+        const subscriptionId = 'sub_' + Date.now();
+        const membershipSubscription = {
+            id: subscriptionId,
+            user_id: userId,
+            plan_type: 'monthly',
+            membership_level: level,
+            price: plan.price,
+            points_cost: paymentMethod === 'points' ? plan.points : null,
+            start_date: new Date().toISOString(),
+            end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            status: 'active',
+            payment_method: paymentMethod,
+            auto_renew: false,
+            created_at: new Date().toISOString()
+        };
+        
+        if (!mockData.membershipSubscriptions) mockData.membershipSubscriptions = [];
+        mockData.membershipSubscriptions.push(membershipSubscription);
+        
+        res.json({
+            success: true,
+            data: {
+                newBalance,
+                membership: {
+                    level: level,
+                    name: plan.name,
+                    expires: user.membership_expires,
+                    benefits: plan.benefits
+                },
+                subscriptionId
+            },
+            message: `恭喜您成功升级到${plan.name}！`
+        });
+        
+        console.log(`✅ 会员升级: ${user.username} 升级到 ${plan.name} (${paymentMethod})`);
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 获取会员信息
+app.get('/api/membership/info', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        
+        const user = mockData.appUsers.find(u => u.id === userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: '用户不存在'
+            });
+        }
+        
+        const membershipLevels = {
+            'basic': { name: '免费用户', icon: '👤', benefits: [] },
+            'bronze': { name: '青铜会员', icon: '🥉', benefits: ['积分获取 +10%', '去除横幅广告', '专属青铜游戏'] },
+            'silver': { name: '白银会员', icon: '🥈', benefits: ['积分获取 +25%', '完全无广告', '独家白银游戏'] },
+            'gold': { name: '黄金会员', icon: '🥇', benefits: ['积分获取 +35%', '零广告体验', '独家黄金内容'] },
+            'diamond': { name: '钻石会员', icon: '💎', benefits: ['积分获取 +50%', '完全无广告', '独家钻石内容'] }
+        };
+        
+        const currentLevel = user.membership_level || 'basic';
+        const membership = membershipLevels[currentLevel];
+        
+        res.json({
+            success: true,
+            data: {
+                level: currentLevel,
+                name: membership.name,
+                icon: membership.icon,
+                expires: user.membership_expires || null,
+                benefits: membership.benefits,
+                isVip: currentLevel !== 'basic'
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 获取会员订阅历史
+app.get('/api/membership/history', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        
+        if (!mockData.membershipSubscriptions) mockData.membershipSubscriptions = [];
+        
+        const userSubscriptions = mockData.membershipSubscriptions
+            .filter(s => s.user_id === userId)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        res.json({
+            success: true,
+            data: userSubscriptions
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
+    }
+});
+
+// 取消会员自动续费
+app.post('/api/membership/cancel-auto-renew', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { subscriptionId } = req.body;
+        
+        if (!mockData.membershipSubscriptions) mockData.membershipSubscriptions = [];
+        
+        const subscription = mockData.membershipSubscriptions.find(s => 
+            s.id === subscriptionId && s.user_id === userId && s.status === 'active'
+        );
+        
+        if (!subscription) {
+            return res.status(404).json({
+                success: false,
+                message: '订阅不存在或已过期'
+            });
+        }
+        
+        subscription.auto_renew = false;
+        subscription.updated_at = new Date().toISOString();
+        
+        res.json({
+            success: true,
+            message: '已取消自动续费'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: '服务器错误'
+        });
     }
 });
 
@@ -1606,6 +2850,504 @@ app.get('/api/app/admob/config', verifyAuth0Token, (req, res) => {
         success: true,
         data: publicConfig
     });
+});
+
+// 记录AdMob广告展示
+app.post('/api/admin/admob/impression', verifyAuth0Token, (req, res) => {
+    try {
+        const { ad_type, timestamp, user_id } = req.body;
+        
+        if (!ad_type || !timestamp) {
+            return res.status(400).json({
+                success: false,
+                error: '缺少必要参数'
+            });
+        }
+        
+        // 模拟记录广告展示
+        const impression = {
+            id: Date.now(),
+            ad_type,
+            timestamp,
+            user_id: user_id || 'anonymous',
+            revenue: getAdRevenue(ad_type),
+            created_at: new Date().toISOString()
+        };
+        
+        // 添加到模拟数据中
+        if (!mockData.admobImpressions) {
+            mockData.admobImpressions = [];
+        }
+        mockData.admobImpressions.push(impression);
+        
+        // 更新收益数据
+        updateAdRevenue(ad_type, impression.revenue);
+        
+        res.json({
+            success: true,
+            data: {
+                impression_id: impression.id,
+                revenue: impression.revenue
+            },
+            message: '广告展示记录成功'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '记录广告展示失败',
+            details: error.message
+        });
+    }
+});
+
+// 获取广告收益（基于广告类型）
+function getAdRevenue(adType) {
+    const revenueRates = {
+        banner: 0.01,      // 横幅广告每次展示0.01美元
+        interstitial: 0.05, // 插屏广告每次展示0.05美元
+        rewarded: 0.10,     // 激励视频每次展示0.10美元
+        native: 0.03        // 原生广告每次展示0.03美元
+    };
+    
+    return revenueRates[adType] || 0.01;
+}
+
+// 更新广告收益数据
+function updateAdRevenue(adType, revenue) {
+    // 更新今天的收益数据
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 找到或创建今天的收益记录
+    let todayRevenue = mockData.admobRevenue.find(item => 
+        item.date === today && item.type === adType
+    );
+    
+    if (!todayRevenue) {
+        todayRevenue = {
+            date: today,
+            type: adType,
+            revenue: 0,
+            impressions: 0
+        };
+        mockData.admobRevenue.push(todayRevenue);
+    }
+    
+    todayRevenue.revenue += revenue;
+    todayRevenue.impressions += 1;
+}
+
+// ===================== 游戏系统API =====================
+
+// 记录游戏成绩
+app.post('/api/game/score', verifyAuth0Token, (req, res) => {
+    try {
+        const { gameType, score, points, attempts, duration } = req.body;
+        const userId = req.user.sub;
+        
+        if (!gameType || score === undefined || points === undefined) {
+            return res.status(400).json({
+                success: false,
+                error: '缺少必要参数'
+            });
+        }
+        
+        // 创建游戏记录
+        const gameRecord = {
+            id: Date.now(),
+            user_id: userId,
+            game_type: gameType,
+            score: parseInt(score),
+            points: parseInt(points),
+            attempts: parseInt(attempts) || 1,
+            duration: parseInt(duration) || 0,
+            created_at: new Date().toISOString()
+        };
+        
+        // 存储到模拟数据中
+        if (!mockData.gameScores) {
+            mockData.gameScores = [];
+        }
+        mockData.gameScores.push(gameRecord);
+        
+        // 更新用户积分（如果用户存在）
+        const user = mockData.users.find(u => u.sub === userId);
+        if (user) {
+            user.points = (user.points || 0) + points;
+        }
+        
+        res.json({
+            success: true,
+            data: gameRecord,
+            message: '游戏成绩记录成功'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '记录游戏成绩失败',
+            details: error.message
+        });
+    }
+});
+
+// 获取用户游戏记录
+app.get('/api/game/scores', verifyAuth0Token, (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const { gameType, limit = 20 } = req.query;
+        
+        if (!mockData.gameScores) {
+            return res.json({
+                success: true,
+                data: []
+            });
+        }
+        
+        let userScores = mockData.gameScores.filter(score => score.user_id === userId);
+        
+        // 如果指定了游戏类型，进行过滤
+        if (gameType) {
+            userScores = userScores.filter(score => score.game_type === gameType);
+        }
+        
+        // 按时间排序并限制数量
+        userScores = userScores
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, parseInt(limit));
+        
+        res.json({
+            success: true,
+            data: userScores
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '获取游戏记录失败',
+            details: error.message
+        });
+    }
+});
+
+// 获取游戏排行榜
+app.get('/api/game/leaderboard', verifyAuth0Token, (req, res) => {
+    try {
+        const { gameType, period = 'all', limit = 10 } = req.query;
+        
+        if (!mockData.gameScores) {
+            return res.json({
+                success: true,
+                data: []
+            });
+        }
+        
+        let scores = [...mockData.gameScores];
+        
+        // 如果指定了游戏类型，进行过滤
+        if (gameType) {
+            scores = scores.filter(score => score.game_type === gameType);
+        }
+        
+        // 根据时间期间过滤
+        if (period !== 'all') {
+            const now = new Date();
+            let startDate;
+            
+            switch(period) {
+                case 'today':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    break;
+                case 'week':
+                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    break;
+            }
+            
+            if (startDate) {
+                scores = scores.filter(score => new Date(score.created_at) >= startDate);
+            }
+        }
+        
+        // 按分数排序，获取最高分
+        const leaderboard = scores
+            .sort((a, b) => b.score - a.score)
+            .slice(0, parseInt(limit))
+            .map((score, index) => ({
+                rank: index + 1,
+                user_id: score.user_id,
+                game_type: score.game_type,
+                score: score.score,
+                points: score.points,
+                created_at: score.created_at
+            }));
+        
+        res.json({
+            success: true,
+            data: leaderboard
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '获取排行榜失败',
+            details: error.message
+        });
+    }
+});
+
+// 获取游戏统计信息
+app.get('/api/game/stats', verifyAuth0Token, (req, res) => {
+    try {
+        const userId = req.user.sub;
+        
+        if (!mockData.gameScores) {
+            return res.json({
+                success: true,
+                data: {
+                    totalGames: 0,
+                    totalPoints: 0,
+                    bestScores: {},
+                    todayGames: 0,
+                    weekGames: 0
+                }
+            });
+        }
+        
+        const userScores = mockData.gameScores.filter(score => score.user_id === userId);
+        
+        // 计算统计信息
+        const totalGames = userScores.length;
+        const totalPoints = userScores.reduce((sum, score) => sum + score.points, 0);
+        
+        // 各游戏最佳成绩
+        const bestScores = {};
+        const gameTypes = ['guessNumber', 'memoryCards', 'reactionSpeed'];
+        
+        gameTypes.forEach(gameType => {
+            const gameScores = userScores.filter(score => score.game_type === gameType);
+            if (gameScores.length > 0) {
+                bestScores[gameType] = Math.max(...gameScores.map(s => s.score));
+            } else {
+                bestScores[gameType] = 0;
+            }
+        });
+        
+        // 今日游戏次数
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayGames = userScores.filter(score => new Date(score.created_at) >= todayStart).length;
+        
+        // 本周游戏次数
+        const weekStart = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const weekGames = userScores.filter(score => new Date(score.created_at) >= weekStart).length;
+        
+        res.json({
+            success: true,
+            data: {
+                totalGames,
+                totalPoints,
+                bestScores,
+                todayGames,
+                weekGames
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '获取游戏统计失败',
+            details: error.message
+        });
+    }
+});
+
+// ===================== 抽奖系统API =====================
+
+// 记录抽奖结果
+app.post('/api/lottery/record', verifyAuth0Token, (req, res) => {
+    try {
+        const { prize_id, prize_name, prize_value, prize_type } = req.body;
+        const userId = req.user.sub;
+        
+        if (!prize_id || !prize_name || prize_value === undefined || !prize_type) {
+            return res.status(400).json({
+                success: false,
+                error: '缺少必要参数'
+            });
+        }
+        
+        // 创建抽奖记录
+        const lotteryRecord = {
+            id: Date.now(),
+            user_id: userId,
+            prize_id: parseInt(prize_id),
+            prize_name,
+            prize_value: parseInt(prize_value),
+            prize_type,
+            created_at: new Date().toISOString()
+        };
+        
+        // 存储到模拟数据中
+        if (!mockData.lotteryRecords) {
+            mockData.lotteryRecords = [];
+        }
+        mockData.lotteryRecords.push(lotteryRecord);
+        
+        // 如果是积分奖励，直接发放给用户
+        if (prize_type === 'points') {
+            const user = mockData.users.find(u => u.sub === userId);
+            if (user) {
+                user.points = (user.points || 0) + prize_value;
+            }
+        }
+        
+        res.json({
+            success: true,
+            data: lotteryRecord,
+            message: '抽奖记录保存成功'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '记录抽奖结果失败',
+            details: error.message
+        });
+    }
+});
+
+// 获取用户抽奖记录
+app.get('/api/lottery/history', verifyAuth0Token, (req, res) => {
+    try {
+        const userId = req.user.sub;
+        const { limit = 20 } = req.query;
+        
+        if (!mockData.lotteryRecords) {
+            return res.json({
+                success: true,
+                data: []
+            });
+        }
+        
+        const userRecords = mockData.lotteryRecords
+            .filter(record => record.user_id === userId)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, parseInt(limit));
+        
+        res.json({
+            success: true,
+            data: userRecords
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '获取抽奖记录失败',
+            details: error.message
+        });
+    }
+});
+
+// 获取抽奖统计信息
+app.get('/api/lottery/stats', verifyAuth0Token, (req, res) => {
+    try {
+        const userId = req.user.sub;
+        
+        if (!mockData.lotteryRecords) {
+            return res.json({
+                success: true,
+                data: {
+                    totalLotteries: 0,
+                    totalPointsWon: 0,
+                    todayLotteries: 0,
+                    weekLotteries: 0,
+                    bestPrize: null
+                }
+            });
+        }
+        
+        const userRecords = mockData.lotteryRecords.filter(record => record.user_id === userId);
+        
+        // 总抽奖次数
+        const totalLotteries = userRecords.length;
+        
+        // 总获得积分
+        const totalPointsWon = userRecords
+            .filter(record => record.prize_type === 'points')
+            .reduce((sum, record) => sum + record.prize_value, 0);
+        
+        // 今日抽奖次数
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayLotteries = userRecords.filter(record => 
+            new Date(record.created_at) >= todayStart
+        ).length;
+        
+        // 本周抽奖次数
+        const weekStart = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const weekLotteries = userRecords.filter(record => 
+            new Date(record.created_at) >= weekStart
+        ).length;
+        
+        // 最佳奖品（积分最高）
+        const bestPrize = userRecords
+            .filter(record => record.prize_type === 'points')
+            .sort((a, b) => b.prize_value - a.prize_value)[0] || null;
+        
+        res.json({
+            success: true,
+            data: {
+                totalLotteries,
+                totalPointsWon,
+                todayLotteries,
+                weekLotteries,
+                bestPrize
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '获取抽奖统计失败',
+            details: error.message
+        });
+    }
+});
+
+// 获取抽奖配置
+app.get('/api/lottery/config', verifyAuth0Token, (req, res) => {
+    try {
+        const lotteryConfig = {
+            dailyFreeSpins: 3,
+            pointsPerSpin: 100,
+            vipBonusSpins: 2,
+            prizes: [
+                { id: 1, name: "100积分", value: 100, type: "points", probability: 30, color: "#FEF3C7", icon: "💰" },
+                { id: 2, name: "50积分", value: 50, type: "points", probability: 25, color: "#DBEAFE", icon: "💎" },
+                { id: 3, name: "VIP体验卡", value: 7, type: "vip_trial", probability: 15, color: "#F3E8FF", icon: "👑" },
+                { id: 4, name: "200积分", value: 200, type: "points", probability: 10, color: "#ECFDF5", icon: "🎁" },
+                { id: 5, name: "500积分", value: 500, type: "points", probability: 8, color: "#FEF2F2", icon: "💸" },
+                { id: 6, name: "抽奖券x3", value: 3, type: "lottery_tickets", probability: 7, color: "#F0F9FF", icon: "🎫" },
+                { id: 7, name: "1000积分", value: 1000, type: "points", probability: 3, color: "#FFFBEB", icon: "🏆" },
+                { id: 8, name: "谢谢参与", value: 0, type: "empty", probability: 2, color: "#F9FAFB", icon: "😊" }
+            ]
+        };
+        
+        res.json({
+            success: true,
+            data: lotteryConfig
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: '获取抽奖配置失败',
+            details: error.message
+        });
+    }
 });
 
 // 404处理

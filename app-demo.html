@@ -22,11 +22,12 @@
         }
         
         .phone-container {
-            width: 375px;
-            height: 812px;
+            width: min(420px, 100vw - 24px);
+            height: auto;
+            min-height: 100vh; /* 使容器撑满屏幕，底部导航稳定 */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 40px;
-            padding: 60px 30px 30px;
+            padding: clamp(28px, 5vw, 60px) clamp(16px, 4vw, 30px) clamp(16px, 4vw, 30px);
             position: relative;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             display: flex;
@@ -55,13 +56,17 @@
             margin-top: 5px;
         }
         
-        /* 主要内容区域 */
+        /* 主要内容区域：顶部对齐并可滚动，避免视图叠加导致的“变形” */
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 0 16px 12px;
+            overflow-y: auto;
+            min-height: 0;
+            gap: 16px;
         }
         
         /* 用户信息卡片 */
@@ -155,9 +160,75 @@
             justify-content: space-around;
             align-items: center;
             background: rgba(255, 255, 255, 0.9);
-            border-radius: 25px;
-            padding: 15px 10px;
+            border-radius: 20px;
+            padding: clamp(10px, 2.5vw, 15px) clamp(8px, 2vw, 12px);
             margin-top: auto;
+            position: sticky;
+            bottom: 0;
+            z-index: 1000; /* 始终浮在内容之上 */
+        }
+
+        /* 发现页（游戏/抽奖/商城/订阅） */
+        .discover-view { width: 100%; }
+        .discover-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            width: 100%;
+        }
+        .discover-tile {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 18px;
+            padding: 22px 10px;
+            text-align: center;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .discover-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.16); }
+        .discover-tile .icon { font-size: 1.8rem; display:block; margin-bottom: 8px; }
+        .discover-tile .text { font-weight: 700; }
+        .hint { display:block; margin-top:4px; font-size:12px; color:#6b7280; }
+
+        /* 首页（Fast Job 风格） */
+        .home-view { width: 100%; }
+        .home-banner {
+            width: 100%;
+            height: 120px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffedd5, #fde68a);
+            display: flex; align-items: center; justify-content: center;
+            color: #7c2d12; font-weight: 800; font-size: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            margin-bottom: 16px;
+        }
+        .home-title { text-align:center; margin: 6px 0 14px; color:#1f2937; font-weight:800; }
+        .app-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+        }
+        .app-header { display:flex; align-items:center; gap:12px; }
+        .app-title { font-weight:800; color:#111827; line-height:1.3; }
+        .app-sub { color:#6b7280; font-size:12px; margin-top:2px; }
+        .app-icon { width:56px; height:56px; border-radius:12px; background:#f59e0b; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; }
+        .app-rows { margin:12px 0; display:grid; gap:10px; }
+        .app-row { display:flex; align-items:center; justify-content:space-between; background:#f9fafb; padding:12px; border-radius:12px; border:1px solid #eef2f7; }
+        .app-row .label { display:flex; align-items:center; gap:8px; color:#374151; font-weight:700; }
+        .app-row .value { color:#b45309; font-weight:900; }
+        .cta-btn { width:100%; background:#f97316; color:#fff; border:none; padding:14px; border-radius:999px; font-weight:800; box-shadow: 0 10px 24px rgba(249,115,22,.35); cursor:pointer; }
+        .cta-btn:active { transform: translateY(1px); }
+        .contact-note { text-align:center; color:#6b7280; margin:12px 0; font-size:12px; }
+        .contact-list { display:grid; gap:10px; }
+        .contact-item { display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.95); padding:12px; border-radius:12px; border:1px solid #eef2f7; }
+        .contact-left { display:flex; align-items:center; gap:10px; color:#374151; font-weight:700; }
+        .contact-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#e5f6ff; }
+        .contact-btn { background:#10b981; color:#fff; border:none; padding:10px 16px; border-radius:999px; font-weight:800; cursor:pointer; }
+
+        @media (max-width: 420px) {
+            body { align-items: flex-start; padding: 12px 0; }
+            .phone-container { border-radius: 24px; }
         }
         
         .nav-btn {
@@ -188,9 +259,13 @@
             max-width: 100%;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
-            margin: 10px;
+            margin: 0; /* 去掉外边距，让内容占满 */
             backdrop-filter: blur(10px);
         }
+        /* 我的页占满容器 */
+        .profile-view { width: 100%; }
+        /* 使“我的”页左右贴边（覆盖 main-content 的左右内边距）*/
+        .profile-view.full { width: calc(100% + 32px); margin-left: -16px; margin-right: -16px; }
         
         .profile-header {
             text-align: center;
@@ -345,10 +420,12 @@
             background: #fff;
             border-radius: 20px;
             padding: 30px;
-            max-width: 320px;
+            max-width: 380px;
             width: 90%;
             text-align: center;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-height: 80vh;
+            overflow-y: auto;
         }
         
         .login-title {
@@ -401,6 +478,1001 @@
             border-radius: 8px;
             font-size: 0.8rem;
             display: none;
+        }
+
+        /* 认证表单样式 */
+        .auth-form {
+            text-align: left;
+        }
+
+        /* 广告容器样式 */
+        .ad-container {
+            margin: 10px 0;
+            padding: 5px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 8px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            pointer-events: none; /* 广告容器不拦截点击 */
+        }
+        
+        .ad-container .adsbygoogle {
+            display: block !important;
+            width: 100%;
+            pointer-events: auto; /* 仅广告元素可交互 */
+        }
+        
+        .ad-loading {
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group.checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .form-group.checkbox input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .form-group.checkbox label {
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .form-group.checkbox a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .form-group.checkbox a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .auth-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .auth-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .social-login {
+            margin: 20px 0;
+        }
+
+        .divider {
+            position: relative;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider span {
+            background: #fff;
+            padding: 0 15px;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin: 0 5px;
+        }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        .form-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* 邮箱验证相关样式 */
+        .verification-info {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .verification-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .verification-info h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .verification-info p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .verification-info strong {
+            color: #667eea;
+        }
+
+        /* 积分商城样式 */
+        .shop-content {
+            padding: 15px;
+        }
+
+        .shop-categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            background: #fff;
+            color: #666;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .category-btn.active,
+        .category-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: #667eea;
+        }
+
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        .shop-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .shop-item.out-of-stock {
+            opacity: 0.6;
+        }
+
+        .item-image {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ef4444;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .item-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .item-description {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .item-price .price {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .item-price .original-price {
+            font-size: 0.7rem;
+            color: #999;
+            text-decoration: line-through;
+            margin-left: 5px;
+        }
+
+        .buy-btn {
+            padding: 5px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .buy-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .buy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .item-stock {
+            font-size: 0.6rem;
+            color: #999;
+            text-align: right;
+        }
+
+        /* 积分转赠模态框样式 */
+        .transfer-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .transfer-modal .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .transfer-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .transfer-modal .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .transfer-modal .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transfer-modal .modal-body {
+            padding: 20px 25px;
+        }
+
+        .current-points {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .current-points span {
+            font-size: 1.2rem;
+        }
+
+        .transfer-modal .form-group {
+            margin-bottom: 15px;
+        }
+
+        .transfer-modal label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .transfer-modal input,
+        .transfer-modal textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .transfer-modal input:focus,
+        .transfer-modal textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .transfer-modal textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .form-note {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-note p {
+            margin: 0 0 5px 0;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .transfer-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .transfer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 提现模态框样式 */
+        .withdrawal-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .withdrawal-modal .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 450px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .balance-info {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-title {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .balance-note {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .withdrawal-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .withdrawal-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .amount-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .amount-input-group .currency {
+            position: absolute;
+            left: 12px;
+            color: #666;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .amount-input-group input {
+            padding-left: 40px;
+            flex: 1;
+        }
+
+        .amount-input-group .currency:last-child {
+            position: static;
+            padding: 12px 15px;
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            border-left: 0;
+            border-radius: 0 8px 8px 0;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .withdrawal-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .summary-item.total {
+            font-weight: 600;
+            color: #333;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 8px;
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
+
+        .form-help {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .withdrawal-modal select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #fff;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .withdrawal-modal select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-footer .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-footer .btn-secondary {
+            background: #f3f4f6;
+            color: #666;
+        }
+
+        .modal-footer .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .modal-footer .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .modal-footer .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 会员系统样式 */
+        .membership-content {
+            padding: 15px;
+        }
+
+        .current-membership {
+            margin-bottom: 25px;
+        }
+
+        .membership-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .membership-card.bronze {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #fff;
+        }
+
+        .membership-card.silver {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: #fff;
+        }
+
+        .membership-card.gold {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #fff;
+        }
+
+        .membership-card.diamond {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: #fff;
+        }
+
+        .membership-icon {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .membership-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .membership-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .membership-benefits {
+            margin-left: auto;
+        }
+
+        .benefit-tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .membership-plans h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .plan-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .plan-card.featured {
+            border-color: #fbbf24;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .plan-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .plan-header h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ef4444;
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+
+        .plan-badge.popular {
+            background: #fbbf24;
+        }
+
+        .plan-badge.exclusive {
+            background: #8b5cf6;
+        }
+
+        .plan-price {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .plan-price .price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .plan-price .period {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .plan-features {
+            margin-bottom: 15px;
+        }
+
+        .plan-features .feature {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 5px;
+            padding-left: 5px;
+        }
+
+        .plan-points {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .membership-privileges h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .privileges-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .privilege-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .privilege-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .privilege-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .privilege-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* 会员升级模态框样式 */
+        .membership-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .membership-modal .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 400px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .upgrade-plan-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .plan-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .plan-duration {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .payment-methods h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .payment-options {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .payment-option {
+            display: block;
+            cursor: pointer;
+        }
+
+        .payment-option input[type="radio"] {
+            display: none;
+        }
+
+        .option-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option input[type="radio"]:checked + .option-content {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option-icon {
+            font-size: 1.5rem;
+        }
+
+        .option-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .option-price {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .upgrade-benefits h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .benefits-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .benefit-item {
+            font-size: 0.9rem;
+            color: #059669;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .balance-check {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .balance-status .sufficient {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .balance-status .insufficient {
+            color: #dc2626;
+            font-weight: 600;
         }
         
         .success {
@@ -463,6 +1535,284 @@
         .hidden {
             display: none !important;
         }
+
+        /* 编辑资料模态框样式 */
+        .profile-edit-modal {
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .profile-edit-form {
+            padding: 20px 0;
+        }
+
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #667eea;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+            color: white;
+            font-size: 12px;
+        }
+
+        .avatar-container:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 14px;
+            background: #fff;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input[readonly] {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .modal-footer .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .modal-footer .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .modal-footer .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-footer .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-footer .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .modal-footer .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 设置模态框样式 */
+        .settings-modal {
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .settings-tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e5e9;
+            margin-bottom: 25px;
+        }
+
+        .settings-tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .settings-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .settings-content {
+            min-height: 300px;
+        }
+
+        .settings-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .setting-desc {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .setting-control {
+            margin-left: 20px;
+        }
+
+        /* 开关样式 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .version-info {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 13px;
+            border-top: 1px solid #e1e5e9;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -473,42 +1823,85 @@
             <div class="app-title">积分宝</div>
             <div class="app-subtitle">App端登录演示</div>
         </div>
+        
+        <!-- 顶部横幅广告 -->
+        <div id="top-banner-ad" class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-3940256099942544"
+                 data-ad-slot="6300978111"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+        </div>
 
         <!-- 主要内容区域 -->
         <div class="main-content">
-            <!-- 用户信息卡片 -->
-            <div class="user-card">
-                <div class="user-avatar" id="userAvatar">👤</div>
-                <div class="user-name" id="userName">Demo Google用户</div>
-                <div class="user-points" id="userPoints">10,000</div>
-                <div class="vip-badge" id="vipBadge">普通会员</div>
+            <!-- 首页（参考Fast Job样式） -->
+            <div id="homeView" class="home-view">
+                <div class="home-banner">Fast Job · Start earning easily</div>
+                <div class="home-title">Earn Money App List</div>
+                <div class="app-card">
+                    <div class="app-header">
+                        <div style="flex:1">
+                            <div class="app-title">Gold Age: Earn 100,000ksh everyday</div>
+                            <div class="app-sub">5 Minutes Fast Withdrawal</div>
+                        </div>
+                        <div class="app-icon">💰</div>
+                    </div>
+                    <div class="app-rows">
+                        <div class="app-row">
+                            <div class="label">↗ Free Cash</div>
+                            <div class="value">10,000ksh</div>
+                        </div>
+                        <div class="app-row">
+                            <div class="label">↗ Daily Income</div>
+                            <div class="value">100,000ksh</div>
+                        </div>
+                    </div>
+                    <button class="cta-btn" onclick="showDiscoverView()">Click to Earn Money</button>
+                    <div class="contact-note">Contact and learn more</div>
+                    <div class="contact-list">
+                        <div class="contact-item">
+                            <div class="contact-left"><div class="contact-icon">🟢</div>WhatsApp Service</div>
+                            <button class="contact-btn" onclick="window.open('https://wa.me/','_blank')">Contact ▶</button>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-left"><div class="contact-icon">🟢</div>WhatsApp Group</div>
+                            <button class="contact-btn" onclick="window.open('https://wa.me/','_blank')">Contact ▶</button>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-left"><div class="contact-icon">✈️</div>Telegram Channel</div>
+                            <button class="contact-btn" onclick="window.open('https://t.me/','_blank')">Contact ▶</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- 2x2 功能按钮网格 -->
-            <div class="action-grid">
-                <button class="action-btn" onclick="handleAction('video')">
-                    <span class="icon">☕</span>
-                    <span class="text">观看视频</span>
-                </button>
-                
-                <button class="action-btn" onclick="handleAction('app')">
-                    <span class="icon">📱</span>
-                    <span class="text">下载应用</span>
-                </button>
-                
-                <button class="action-btn" onclick="handleAction('checkin')">
-                    <span class="icon">📅</span>
-                    <span class="text">每日签到</span>
-                </button>
-                
-                <button class="action-btn" onclick="handleAction('refresh')">
-                    <span class="icon">🔄</span>
-                    <span class="text">刷新积分</span>
-                </button>
+            <!-- 发现视图（独立导航页，包含三个入口 + 订阅） -->
+            <div id="discoverView" class="discover-view view" style="display:none;">
+                <div class="section-title">发现</div>
+                <div class="discover-grid">
+                    <div class="discover-tile" onclick="showPointsShop()">
+                        <span class="icon">🛒</span><span class="text">积分商城</span>
+                        <span class="hint">将打开新界面</span>
+                    </div>
+                    <div class="discover-tile" onclick="showTransactionView()">
+                        <span class="icon">📊</span><span class="text">积分记录</span>
+                        <span class="hint">将打开新界面</span>
+                    </div>
+                    <div class="discover-tile" onclick="showWithdrawalRequest()">
+                        <span class="icon">💰</span><span class="text">申请提现</span>
+                        <span class="hint">将打开新界面</span>
+                    </div>
+                    <div class="discover-tile" onclick="showSettings()">
+                        <span class="icon">⚙️</span><span class="text">账户设置</span>
+                        <span class="hint">将打开新界面</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- 交易记录视图 -->
-            <div class="transaction-view" id="transactionView">
+            <!-- 交易记录视图（独立页面） -->
+            <div class="transaction-view view" id="transactionView" style="display:none;">
                 <div class="section-title">最近交易记录</div>
                 <div id="transactionList">
                     <div class="transaction-item">
@@ -540,17 +1933,19 @@
 
         <!-- 底部导航（三个按钮） -->
         <div class="bottom-nav">
-            <button class="nav-btn active" onclick="showHomeView()">
+            <button class="nav-btn active" onclick="navigateTo('home')">
                 <span class="icon">🏠</span>
                 <span class="text">首页</span>
             </button>
-            
-            <button class="nav-btn" onclick="showTransactionView()">
+            <button class="nav-btn" onclick="navigateTo('transaction')">
                 <span class="icon">📊</span>
                 <span class="text">记录</span>
             </button>
-            
-            <button class="nav-btn" onclick="showProfileView()">
+            <button class="nav-btn" onclick="navigateTo('discover')">
+                <span class="icon">🧭</span>
+                <span class="text">发现</span>
+            </button>
+            <button class="nav-btn" onclick="navigateTo('profile')">
                 <span class="icon">👤</span>
                 <span class="text">我的</span>
             </button>
@@ -560,22 +1955,109 @@
     <!-- 登录模态框 -->
     <div id="loginModal" class="login-modal">
         <div class="login-content">
-            <h3 class="login-title">选择登录方式</h3>
+            <h3 id="modalTitle" class="login-title">登录</h3>
             
-            <button class="login-btn google-btn" onclick="loginWithGoogle()">
-                <span>🔵</span>
-                使用 Google 登录
-            </button>
-            
-            <button class="login-btn apple-btn" onclick="loginWithApple()">
-                <span>🍎</span>
-                使用 Apple 登录
-            </button>
-            
-            <button class="login-btn guest-btn" onclick="loginAsGuest()">
-                <span>👤</span>
-                游客模式体验
-            </button>
+            <!-- 登录表单 -->
+            <div id="loginForm" class="auth-form">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <input type="email" id="loginEmail" placeholder="邮箱" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="loginPassword" placeholder="密码" required>
+                    </div>
+                    <button type="submit" class="auth-btn primary">登录</button>
+                </form>
+                
+                <div class="social-login">
+                    <div class="divider"><span>或使用社交账号登录</span></div>
+                    <button class="login-btn google-btn" onclick="loginWithGoogle()">
+                        <span>🔵</span>
+                        Google 登录
+                    </button>
+                    <button class="login-btn apple-btn" onclick="loginWithApple()">
+                        <span>🍎</span>
+                        Apple 登录
+                    </button>
+                    <button class="login-btn guest-btn" onclick="loginAsGuest()">
+                        <span>👤</span>
+                        游客体验
+                    </button>
+                </div>
+                
+                <div class="auth-links">
+                    <a href="#" onclick="showRegisterForm()">没有账号？立即注册</a>
+                    <a href="#" onclick="showForgotPasswordForm()">忘记密码？</a>
+                </div>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="registerForm" class="auth-form" style="display: none;">
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <input type="text" id="registerUsername" placeholder="用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="registerEmail" placeholder="邮箱" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="registerPassword" placeholder="密码 (至少6位)" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="confirmPassword" placeholder="确认密码" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="referralCode" placeholder="邀请码 (可选)">
+                    </div>
+                    <div class="form-group checkbox">
+                        <label>
+                            <input type="checkbox" id="agreeTerms" required>
+                            <span>我同意 <a href="#" onclick="showTerms()">用户协议</a> 和 <a href="#" onclick="showPrivacy()">隐私政策</a></span>
+                        </label>
+                    </div>
+                    <button type="submit" class="auth-btn primary">注册</button>
+                </form>
+                
+                <div class="auth-links">
+                    <a href="#" onclick="showLoginForm()">已有账号？立即登录</a>
+                </div>
+            </div>
+
+            <!-- 忘记密码表单 -->
+            <div id="forgotPasswordForm" class="auth-form" style="display: none;">
+                <p class="form-description">请输入您的邮箱地址，我们将发送重置密码的链接给您。</p>
+                <form onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <input type="email" id="forgotEmail" placeholder="邮箱" required>
+                    </div>
+                    <button type="submit" class="auth-btn primary">发送重置链接</button>
+                </form>
+                
+                <div class="auth-links">
+                    <a href="#" onclick="showLoginForm()">返回登录</a>
+                </div>
+            </div>
+
+            <!-- 邮箱验证表单 -->
+            <div id="emailVerificationForm" class="auth-form" style="display: none;">
+                <div class="verification-info">
+                    <div class="verification-icon">📧</div>
+                    <h4>验证您的邮箱</h4>
+                    <p>我们已发送验证码到 <strong id="verificationEmail"></strong></p>
+                    <p>请输入您收到的6位验证码：</p>
+                </div>
+                <form onsubmit="handleEmailVerification(event)">
+                    <div class="form-group">
+                        <input type="text" id="verificationCode" placeholder="6位验证码" maxlength="6" required>
+                    </div>
+                    <button type="submit" class="auth-btn primary">验证</button>
+                </form>
+                
+                <div class="auth-links">
+                    <a href="#" onclick="resendVerificationCode()">重新发送验证码</a>
+                    <a href="#" onclick="showRegisterForm()">修改邮箱地址</a>
+                </div>
+            </div>
             
             <div id="loginMessage" class="login-message"></div>
         </div>
@@ -584,8 +2066,42 @@
     <!-- Auth0 SDK -->
     <script src="https://cdn.auth0.com/js/auth0/9.23.2/auth0.min.js"></script>
     
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"
+     crossorigin="anonymous"></script>
+     
+    <!-- 用户中心通用函数 -->
+    <script src="user-profile-functions.js"></script>
+
+    <!-- AdMob Integration -->
+    <script src="admob-integration.js"></script>
+    
+    <!-- Game System -->
+    <link rel="stylesheet" href="game-styles.css">
+    <script src="game-system.js"></script>
+    
+    <!-- Lottery System -->
+    <link rel="stylesheet" href="lottery-styles.css">
+    <script src="lottery-system.js"></script>
+    
     <script>
-        const API_BASE = 'http://192.168.1.29:3001/api';
+        // 全局关闭日志输出（生产环境）
+        (function(){
+            try {
+                const noop = function(){};
+                if (window && window.console) {
+                    console.log = noop;
+                    console.error = noop;
+                    console.warn = noop;
+                    console.debug = noop;
+                    console.info = noop;
+                }
+            } catch(_) {}
+        })();
+
+        const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:3001/api'
+            : 'http://192.168.1.29:3001/api';
         let currentUser = null;
         let authToken = null;
         let isLoggedIn = false;
@@ -700,10 +2216,36 @@
         // 显示首页视图
         function showHomeView() {
             currentView = 'home';
-            document.querySelector('.user-card').style.display = 'block';
-            document.querySelector('.action-grid').style.display = 'grid';
-            document.getElementById('transactionView').style.display = 'none';
+            // 隐藏所有功能视图
+            document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; });
+            const profileView = document.getElementById('profileView');
+            if (profileView) profileView.style.display = 'none';
+            // 显示首页容器
+            const home = document.getElementById('homeView');
+            if (home) home.style.display = 'block';
             updateNavActive('home');
+        }
+
+        // 锚点路由式“新页面跳转”
+        function navigateTo(route) {
+            switch(route) {
+                case 'home':
+                    location.hash = '#/home';
+                    showHomeView();
+                    break;
+                case 'transaction':
+                    location.hash = '#/transaction';
+                    showTransactionView();
+                    break;
+                case 'profile':
+                    location.hash = '#/profile';
+                    showProfileView();
+                    break;
+                case 'discover':
+                    location.hash = '#/discover';
+                    showDiscoverView();
+                    break;
+            }
         }
 
         // 显示交易记录视图
@@ -714,11 +2256,30 @@
                 return;
             }
             currentView = 'transaction';
-            document.querySelector('.user-card').style.display = 'none';
-            document.querySelector('.action-grid').style.display = 'none';
-            document.getElementById('transactionView').style.display = 'block';
+            // 隐藏所有视图
+            document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; });
+            const homeView = document.getElementById('homeView');
+            if (homeView) homeView.style.display = 'none';
+            const profileView = document.getElementById('profileView');
+            if (profileView) profileView.style.display = 'none';
+            const txnView = document.getElementById('transactionView');
+            if (txnView) txnView.style.display = 'block';
             updateNavActive('transaction');
             loadTransactionHistory();
+        }
+
+        // 显示发现视图（游戏/抽奖/商城/订阅）
+        function showDiscoverView() {
+            currentView = 'discover';
+            // 隐藏所有视图
+            document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; });
+            const homeView = document.getElementById('homeView');
+            if (homeView) homeView.style.display = 'none';
+            const profileView = document.getElementById('profileView');
+            if (profileView) profileView.style.display = 'none';
+            const discover = document.getElementById('discoverView');
+            if (discover) discover.style.display = 'block';
+            updateNavActive('discover');
         }
 
         // 显示个人资料视图
@@ -754,16 +2315,20 @@
             const userName = currentUser.name || currentUser.nickname || '用户';
             const userEmail = currentUser.email || '未绑定邮箱';
             const userAvatar = currentUser.avatar || currentUser.picture || '👤';
+            const isAvatarUrl = /^https?:\/\/|^data:/.test(userAvatar);
             const userId = currentUser.id || currentUser.sub || 'unknown';
             
             const profileHTML = `
                 <div class="profile-container">
                     <div class="profile-header">
-                        <img src="${userAvatar}" alt="头像" class="profile-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div style="display:none; width:80px; height:80px; border-radius:50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 15px;">👤</div>
+                        <img src="${isAvatarUrl ? userAvatar : ''}" alt="头像" class="profile-avatar" style="${isAvatarUrl ? '' : 'display:none;'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="${isAvatarUrl ? 'display:none;' : 'display:flex;'} width:80px; height:80px; border-radius:50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); align-items:center; justify-content:center; font-size:2rem; margin:0 auto 15px;">👤</div>
                         <h2>${userName}</h2>
                         <p class="profile-email">${userEmail}</p>
+                        <!-- 订阅入口去除，避免和发现页重复 -->
                     </div>
+                    
+                    <!-- 去除发现页中的快捷功能，保证“我的”只呈现个人相关模块 -->
                     
                     <div class="profile-stats">
                         <div class="stat-item">
@@ -792,6 +2357,30 @@
                         <button class="profile-btn history-btn" onclick="showTransactionView()">
                             <span class="icon">📊</span>
                             积分记录
+                        </button>
+                        <button class="profile-btn shop-btn" onclick="showPointsShop()">
+                            <span class="icon">🛒</span>
+                            积分商城
+                        </button>
+                        <button class="profile-btn transfer-btn" onclick="showPointsTransfer()">
+                            <span class="icon">💸</span>
+                            积分转赠
+                        </button>
+                        <button class="profile-btn withdrawal-btn" onclick="showWithdrawalRequest()">
+                            <span class="icon">💰</span>
+                            申请提现
+                        </button>
+                        <button class="profile-btn membership-btn" onclick="showMembershipCenter()">
+                            <span class="icon">👑</span>
+                            会员中心
+                        </button>
+                        <button class="profile-btn game-btn" onclick="showGameCenter()">
+                            <span class="icon">🎮</span>
+                            游戏中心
+                        </button>
+                        <button class="profile-btn lottery-btn" onclick="showLotterySystem()">
+                            <span class="icon">🎰</span>
+                            幸运抽奖
                         </button>
                         <button class="profile-btn logout-btn" onclick="logoutUser()">
                             <span class="icon">🚪</span>
@@ -823,18 +2412,31 @@
                 </div>
             `;
             
-            document.querySelector('.content').innerHTML = profileHTML;
+            // 渲染到独立的 profile 容器；若不存在则创建，避免选择不存在的 .content 导致报错
+            const main = document.querySelector('.main-content');
+            let profileView = document.getElementById('profileView');
+            if (!profileView) {
+                profileView = document.createElement('div');
+                profileView.id = 'profileView';
+                profileView.className = 'profile-view';
+                main.appendChild(profileView);
+            }
+            profileView.style.display = 'block';
+            profileView.classList.add('full');
+            profileView.innerHTML = profileHTML;
             console.log('✅ 个人资料页面已渲染');
+            currentView = 'profile';
+            updateNavActive('profile');
         }
 
         // 更新导航按钮状态
         function updateNavActive(activeView) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            if (activeView === 'home') {
-                document.querySelectorAll('.nav-btn')[0].classList.add('active');
-            } else if (activeView === 'transaction') {
-                document.querySelectorAll('.nav-btn')[1].classList.add('active');
-            }
+            const btns = document.querySelectorAll('.nav-btn');
+            if (activeView === 'home') btns[0].classList.add('active');
+            else if (activeView === 'transaction') btns[1].classList.add('active');
+            else if (activeView === 'profile') btns[2].classList.add('active');
+            else if (activeView === 'discover') btns[3].classList.add('active');
         }
 
         // 处理动作按钮点击
@@ -962,6 +2564,11 @@
             updateTodayActionCount(action);
             
             console.log(`✅ ${actionText} 完成，获得 ${points} 积分`);
+            
+            // 检查并显示插屏广告
+            if (typeof checkAndShowInterstitialAd === 'function') {
+                checkAndShowInterstitialAd();
+            }
         }
         
         // 模拟操作执行函数
@@ -1177,12 +2784,309 @@
         // 显示登录模态框
         function showLoginModal() {
             document.getElementById('loginModal').style.display = 'flex';
-            showMessage('请先登录开始赚钱', 'error');
+            showLoginForm();
         }
 
         // 隐藏登录模态框
         function hideLoginModal() {
             document.getElementById('loginModal').style.display = 'none';
+            clearFormData();
+        }
+
+        // 显示登录表单
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('emailVerificationForm').style.display = 'none';
+            
+            document.getElementById('modalTitle').textContent = '登录';
+        }
+
+        // 显示注册表单
+        function showRegisterForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('emailVerificationForm').style.display = 'none';
+            
+            document.getElementById('modalTitle').textContent = '注册';
+        }
+
+        // 显示忘记密码表单
+        function showForgotPasswordForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+            document.getElementById('emailVerificationForm').style.display = 'none';
+            
+            document.getElementById('modalTitle').textContent = '重置密码';
+        }
+
+        // 显示邮箱验证表单
+        function showEmailVerificationForm(email) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            document.getElementById('emailVerificationForm').style.display = 'block';
+            
+            document.getElementById('modalTitle').textContent = '邮箱验证';
+            document.getElementById('verificationEmail').textContent = email;
+        }
+
+        // 清空表单数据
+        function clearFormData() {
+            document.querySelectorAll('#loginModal input[type="text"], #loginModal input[type="email"], #loginModal input[type="password"]').forEach(input => {
+                input.value = '';
+            });
+            const agreeCheckbox = document.querySelector('#agreeTerms');
+            if (agreeCheckbox) {
+                agreeCheckbox.checked = false;
+            }
+        }
+
+        // 处理邮箱密码登录
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showMessage('请填写完整信息', 'error');
+                return;
+            }
+            
+            try {
+                showMessage('正在登录...', 'info');
+                
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 设置用户信息
+                    currentUser = result.data.user;
+                    authToken = result.data.token;
+                    isLoggedIn = true;
+                    
+                    // 存储到localStorage
+                    localStorage.setItem('auth_token', authToken);
+                    localStorage.setItem('user_profile', JSON.stringify(currentUser));
+                    
+                    hideLoginModal();
+                    updateUserInterface();
+                    showMessage('登录成功！', 'success');
+                    
+                    // 执行待处理的操作
+                    const pendingAction = sessionStorage.getItem('pendingAction');
+                    if (pendingAction) {
+                        sessionStorage.removeItem('pendingAction');
+                        setTimeout(() => {
+                            if (pendingAction === 'showTransaction') {
+                                showTransactionView();
+                            } else if (pendingAction === 'showProfile') {
+                                showProfileView();
+                            } else {
+                                handleAction(pendingAction);
+                            }
+                        }, 500);
+                    }
+                } else {
+                    showMessage(result.message || '登录失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 处理用户注册
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const referralCode = document.getElementById('referralCode').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            
+            // 表单验证
+            if (!username || !email || !password || !confirmPassword) {
+                showMessage('请填写完整信息', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showMessage('两次输入的密码不一致', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('密码至少需要6位', 'error');
+                return;
+            }
+            
+            if (!agreeTerms) {
+                showMessage('请同意用户协议和隐私政策', 'error');
+                return;
+            }
+            
+            try {
+                showMessage('正在注册...', 'info');
+                
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        referralCode: referralCode || undefined
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('注册成功，正在发送邮箱验证码...', 'success');
+                    // 显示邮箱验证表单
+                    setTimeout(() => {
+                        showEmailVerificationForm(email);
+                    }, 1500);
+                } else {
+                    showMessage(result.message || '注册失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 处理忘记密码
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('forgotEmail').value;
+            
+            if (!email) {
+                showMessage('请输入邮箱地址', 'error');
+                return;
+            }
+            
+            try {
+                showMessage('正在发送重置链接...', 'info');
+                
+                const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('重置链接已发送到您的邮箱，请查收', 'success');
+                    setTimeout(() => {
+                        showLoginForm();
+                    }, 2000);
+                } else {
+                    showMessage(result.message || '发送失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 处理邮箱验证
+        async function handleEmailVerification(event) {
+            event.preventDefault();
+            
+            const code = document.getElementById('verificationCode').value;
+            const email = document.getElementById('verificationEmail').textContent;
+            
+            if (!code || code.length !== 6) {
+                showMessage('请输入6位验证码', 'error');
+                return;
+            }
+            
+            try {
+                showMessage('正在验证...', 'info');
+                
+                const response = await fetch(`${API_BASE}/auth/verify-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, code })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 自动登录
+                    currentUser = result.data.user;
+                    authToken = result.data.token;
+                    isLoggedIn = true;
+                    
+                    localStorage.setItem('auth_token', authToken);
+                    localStorage.setItem('user_profile', JSON.stringify(currentUser));
+                    
+                    hideLoginModal();
+                    updateUserInterface();
+                    showMessage('注册成功！获得新用户奖励积分！', 'success');
+                } else {
+                    showMessage(result.message || '验证失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 重新发送验证码
+        async function resendVerificationCode() {
+            const email = document.getElementById('verificationEmail').textContent;
+            
+            try {
+                showMessage('正在重新发送验证码...', 'info');
+                
+                const response = await fetch(`${API_BASE}/auth/resend-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('验证码已重新发送', 'success');
+                } else {
+                    showMessage(result.message || '发送失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 显示用户协议
+        function showTerms() {
+            alert('用户协议\n\n1. 用户应遵守相关法律法规\n2. 禁止恶意刷分行为\n3. 积分不可兑换现金\n4. 我们保留最终解释权');
+        }
+
+        // 显示隐私政策
+        function showPrivacy() {
+            alert('隐私政策\n\n1. 我们会保护您的个人信息\n2. 不会向第三方泄露您的信息\n3. 收集信息仅用于改善服务\n4. 您有权要求删除个人信息');
         }
 
         // 显示消息
@@ -1191,10 +3095,36 @@
             element.textContent = message;
             element.className = `login-message ${type}`;
             element.style.display = 'block';
-            
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 3000);
+            setTimeout(() => { element.style.display = 'none'; }, 2000);
+        }
+
+        // 奖励动画，避免未定义导致的错误
+        function showRewardAnimation(points) {
+            try {
+                const toast = document.createElement('div');
+                toast.textContent = `+${(points || 0).toLocaleString()} 积分`;
+                toast.style.position = 'fixed';
+                toast.style.left = '50%';
+                toast.style.top = '45%';
+                toast.style.transform = 'translate(-50%, -50%)';
+                toast.style.padding = '12px 18px';
+                toast.style.borderRadius = '14px';
+                toast.style.background = 'rgba(0,0,0,0.85)';
+                toast.style.color = '#fff';
+                toast.style.fontSize = '18px';
+                toast.style.zIndex = '9999';
+                toast.style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
+                document.body.appendChild(toast);
+                requestAnimationFrame(() => {
+                    toast.style.transition = 'all .6s ease';
+                    toast.style.opacity = '1';
+                });
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translate(-50%, -70%)';
+                }, 800);
+                setTimeout(() => toast.remove(), 1500);
+            } catch (_) {}
         }
 
         // Google登录 - 使用Auth0
@@ -1388,6 +3318,22 @@
 
         // 观看视频赚积分
         async function earnFromVideo() {
+            // 首先显示激励视频广告
+            if (typeof showRewardedAd === 'function') {
+                showRewardedAd((success) => {
+                    if (success) {
+                        // 广告观看成功，执行原有的积分奖励逻辑
+                        performVideoEarnRequest();
+                    }
+                });
+            } else {
+                // 降级到原有逻辑
+                performVideoEarnRequest();
+            }
+        }
+        
+        // 执行视频积分请求
+        async function performVideoEarnRequest() {
             try {
                 const response = await fetch(`${API_BASE}/app/earn/watch-video`, {
                     method: 'POST',
@@ -1530,6 +3476,24 @@
             return types[type] || type;
         }
 
+        // 追加一条本地交易记录（用于立即在“记录”页展示）
+        function addTransactionRecord(record) {
+            try {
+                const listElement = document.getElementById('transactionList');
+                if (!listElement) return;
+                const item = document.createElement('div');
+                item.className = 'transaction-item';
+                item.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="title">${getTransactionTypeName(record.transaction_type || record.action)}</div>
+                        <div class="time">${new Date(record.created_at || record.timestamp).toLocaleString()}</div>
+                    </div>
+                    <div class="transaction-amount">+${(record.points_change || record.points || 0).toLocaleString()}</div>
+                `;
+                listElement.prepend(item);
+            } catch (_) {}
+        }
+
         // 退出登录 - Auth0版本
         function logout() {
             if (confirm('确定要退出登录吗？')) {
@@ -1585,12 +3549,12 @@
         
         // 编辑资料功能
         function editProfile() {
-            alert('编辑资料功能正在开发中，敬请期待！\n\n将来可以修改:\n- 用户名\n- 头像\n- 个人简介');
+            showEditProfileModal();
         }
         
         // 账户设置功能
         function showSettings() {
-            alert('账户设置功能正在开发中，敬请期待！\n\n将来可以设置:\n- 通知偏好\n- 隐私设置\n- 安全设置');
+            showSettingsModal();
         }
 
         // 检查服务器连接
@@ -1612,41 +3576,16 @@
             }
         });
         
-        // 调试函数
-        function showDebugInfo() {
-            const debugInfo = [
-                `🔍 Auth0调试信息:`,
-                ``,
-                `Auth0 SDK: ${typeof Auth0 !== 'undefined' ? '✅ 已加载' : '❌ 未加载'}`,
-                `Auth0对象: ${auth0 ? '✅ 已初始化' : '❌ 未初始化'}`,
-                `登录状态: ${isLoggedIn ? '✅ 已登录' : '❌ 未登录'}`,
-                `当前用户: ${currentUser ? currentUser.name : '无'}`,
-                `Domain: ${auth0Config.domain}`,
-                `Client ID: ${auth0Config.clientId.substring(0, 12)}...`,
-                ``,
-                `🌐 网络信息:`,
-                `当前URL: ${window.location.href}`,
-                `LocalStorage: ${localStorage.getItem('isLoggedIn') || '无'}`,
-                ``,
-                `📋 操作提示:`,
-                `- 双击用户卡片查看此信息`,
-                `- 按 Ctrl+D 也可打开调试面板`,
-                `- 如果Auth0失败，会自动使用模拟登录`
-            ];
-            
-            alert(debugInfo.join('\n'));
-        }
-        
-        // 双击用户卡片显示调试信息
-        document.querySelector('.user-card').addEventListener('dblclick', showDebugInfo);
-        
-        // 按 Ctrl+D 显示调试面板
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'd') {
-                e.preventDefault();
-                showDebugInfo();
+        // 调试函数（已禁用）
+        function showDebugInfo() { /* logs disabled */ }
+        // 移除调试事件监听（占位，防止意外绑定）
+        try {
+            const uc = document.querySelector('.user-card');
+            if (uc) {
+                uc.addEventListener('dblclick', function(ev){ ev.stopPropagation(); });
             }
-        });
+            document.addEventListener('keydown', function(e){ /* ignore */ }, { once: true });
+        } catch(_) {}
         // ===================== 后端配置管理 =====================
         
         // 从后端获取积分配置
@@ -1669,6 +3608,9 @@
                     pointsConfig = result.data;
                     console.log('✅ 积分配置已加载:', pointsConfig);
                     updateActionPointsDisplay(); // 更新界面显示
+                    
+                    // 检查积分过期
+                    checkPointsExpiration();
                 } else {
                     console.error('❌ 获取积分配置失败:', response.statusText);
                 }
@@ -1696,6 +3638,11 @@
                     const result = await response.json();
                     admobConfig = result.data;
                     console.log('✅ AdMob配置已加载:', admobConfig);
+                    
+                    // 初始化广告
+                    if (typeof initializeAds === 'function') {
+                        initializeAds();
+                    }
                 } else {
                     console.error('❌ 获取AdMob配置失败:', response.statusText);
                 }
@@ -1751,241 +3698,27 @@
         
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('📱 DOM加载完成，初始化APP');
             initializeAuth0();
         });
 
-    </script>
-</body>
-</html>
-                const response = await fetch(`${API_BASE}/app/earn/daily-checkin`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    currentUser.points += result.data.points_earned;
-                    updateUserInterface();
-                    alert(`每日签到完成！获得 ${result.data.points_earned} 积分`);
-                } else {
-                    alert(result.error || '操作失败');
-                }
-            } catch (error) {
-                alert('网络错误，请稍后重试');
-            }
-        }
-
-        // 刷新积分
-        async function refreshPoints() {
-            try {
-                const response = await fetch(`${API_BASE}/app/user/points`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    currentUser.points = result.data.points;
-                    updateUserInterface();
-                    alert('积分已刷新');
-                } else {
-                    alert(result.error || '刷新失败');
-                }
-            } catch (error) {
-                alert('网络错误，请稍后重试');
-            }
-        }
-
-        // 加载交易记录
-        async function loadTransactionHistory() {
-            if (!authToken) return;
-
-            try {
-                const response = await fetch(`${API_BASE}/app/user/transactions`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                const result = await response.json();
-                if (result.success && result.data.length > 0) {
-                    const listElement = document.getElementById('transactionList');
-                    listElement.innerHTML = '';
-                    
-                    result.data.forEach(transaction => {
-                        const item = document.createElement('div');
-                        item.className = 'transaction-item';
-                        item.innerHTML = `
-                            <div class="transaction-info">
-                                <div class="title">${getTransactionTypeName(transaction.transaction_type)}</div>
-                                <div class="time">${new Date(transaction.created_at).toLocaleString()}</div>
-                            </div>
-                            <div class="transaction-amount">+${transaction.points_change.toLocaleString()}</div>
-                        `;
-                        listElement.appendChild(item);
-                    });
-                }
-            } catch (error) {
-                console.error('加载交易记录失败:', error);
-            }
-        }
-
-        // 获取交易类型名称
-        function getTransactionTypeName(type) {
-            const types = {
-                'registration_bonus': '注册奖励',
-                'watch_video': '观看视频',
-                'download_app': '下载应用',
-                'daily_checkin': '每日签到',
-                'admin_adjust': '管理员调整'
-            };
-            return types[type] || type;
-        }
-
-        // 退出登录 - Auth0版本
-        function logout() {
-            if (confirm('确定要退出登录吗？')) {
-                console.log('🚪 用户退出登录');
-                
-                // 清除所有本地存储
-                localStorage.removeItem('auth0_token');
-                localStorage.removeItem('auth0_id_token');
-                localStorage.removeItem('user_profile');
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('isLoggedIn');
-                sessionStorage.clear();
-                
-                // 重置状态
-                currentUser = null;
-                authToken = null;
-                isLoggedIn = false;
-                
-                // 显示退出消息
-                showMessage('正在退出登录...', 'info');
-                
-                // 更新UI
-                updateUIForLoggedOut();
-                
-                // Auth0退出登录
-                if (auth0) {
-                    try {
-                        auth0.logout({
-                            returnTo: window.location.origin + '/app-demo.html',
-                            clientID: auth0Config.clientId
-                        });
-                    } catch (error) {
-                        console.error('Auth0退出失败:', error);
-                        // 如果Auth0退出失败，直接刷新页面
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
-                    }
-                } else {
-                    // 没有Auth0，直接刷新页面
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                }
-            }
-        }
-        
-        // 退出登录的别名函数
-        function logoutUser() {
-            logout();
-        }
-        
-        // 编辑资料功能
-        function editProfile() {
-            alert('编辑资料功能正在开发中，敬请期待！\n\n将来可以修改:\n- 用户名\n- 头像\n- 个人简介');
-        }
-        
-        // 账户设置功能
-        function showSettings() {
-            alert('账户设置功能正在开发中，敬请期待！\n\n将来可以设置:\n- 通知偏好\n- 隐私设置\n- 安全设置');
-        }
-
-        // 检查服务器连接
-        async function checkServerConnection() {
-            try {
-                const response = await fetch(`${API_BASE}/health`);
-                if (response.ok) {
-                    console.log('✅ 后台API服务器连接正常');
-                }
-            } catch (error) {
-                console.error('❌ 无法连接到后台API服务器');
-            }
-        }
-
-        // 点击模态框外部关闭
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hideLoginModal();
-            }
-        });
-        
-        // 调试函数
-        function showDebugInfo() {
-            const debugInfo = [
-                `🔍 Auth0调试信息:`,
-                ``,
-                `Auth0 SDK: ${typeof Auth0 !== 'undefined' ? '✅ 已加载' : '❌ 未加载'}`,
-                `Auth0对象: ${auth0 ? '✅ 已初始化' : '❌ 未初始化'}`,
-                `登录状态: ${isLoggedIn ? '✅ 已登录' : '❌ 未登录'}`,
-                `当前用户: ${currentUser ? currentUser.name : '无'}`,
-                `Domain: ${auth0Config.domain}`,
-                `Client ID: ${auth0Config.clientId.substring(0, 12)}...`,
-                ``,
-                `🌐 网络信息:`,
-                `当前URL: ${window.location.href}`,
-                `LocalStorage: ${localStorage.getItem('isLoggedIn') || '无'}`,
-                ``,
-                `📋 操作提示:`,
-                `- 双击用户卡片查看此信息`,
-                `- 按 Ctrl+D 也可打开调试面板`,
-                `- 如果Auth0失败，会自动使用模拟登录`
-            ];
-            
-            alert(debugInfo.join('\n'));
-        }
-        
-        // 双击用户卡片显示调试信息
-        document.querySelector('.user-card').addEventListener('dblclick', showDebugInfo);
-        
-        // 按 Ctrl+D 显示调试面板
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'd') {
-                e.preventDefault();
-                showDebugInfo();
-            }
-        });
-        // ===================== 后端配置管理 =====================
-        
-        // 从后端获取积分配置
-        async function loadPointsConfig() {
-            try {
+        // 修复意外残留的顶层 try 代码块引起的非法 return
+        async function safeLoadPointsConfigOnInit() {
                 if (!authToken) {
                     console.log('⚠️ 未登录，无法获取积分配置');
-                    return;
-                }
-                
+                return;
+            }
+            try {
                 const response = await fetch(`${API_BASE}/app/points/config`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json'
                     }
                 });
-                
                 if (response.ok) {
                     const result = await response.json();
                     pointsConfig = result.data;
                     console.log('✅ 积分配置已加载:', pointsConfig);
-                    updateActionPointsDisplay(); // 更新界面显示
+                    updateActionPointsDisplay();
                 } else {
                     console.error('❌ 获取积分配置失败:', response.statusText);
                 }
@@ -2013,6 +3746,11 @@
                     const result = await response.json();
                     admobConfig = result.data;
                     console.log('✅ AdMob配置已加载:', admobConfig);
+                    
+                    // 初始化广告
+                    if (typeof initializeAds === 'function') {
+                        initializeAds();
+                    }
                 } else {
                     console.error('❌ 获取AdMob配置失败:', response.statusText);
                 }
@@ -2064,6 +3802,1004 @@
             }
             
             console.log('✅ 操作按钮积分显示已更新');
+        }
+
+        // ===================== 积分增强功能 =====================
+
+        // 检查积分过期
+        async function checkPointsExpiration() {
+            if (!isLoggedIn || !currentUser) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/points/check-expiration`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ userId: currentUser.id })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.data.expiredPoints > 0) {
+                    showMessage(`有 ${result.data.expiredPoints} 积分已过期`, 'warning');
+                    // 更新用户积分显示
+                    currentUser.points = result.data.newBalance;
+                    updateUserInterface();
+                }
+            } catch (error) {
+                // 静默处理错误
+            }
+        }
+
+        // 显示积分商城
+        function showPointsShop() {
+            if (!isLoggedIn || !currentUser) {
+                showLoginModal();
+                return;
+            }
+            
+            // 隐藏所有视图
+            document.querySelectorAll('.view').forEach(view => { view.style.display = 'none'; });
+            const txn = document.getElementById('transactionView');
+            if (txn) txn.style.display = 'none';
+            const userCard = document.querySelector('.user-card');
+            const actionGrid = document.querySelector('.action-grid');
+            if (userCard) userCard.style.display = 'none';
+            if (actionGrid) actionGrid.style.display = 'none';
+            
+            // 显示积分商城
+            const shopView = document.getElementById('pointsShopView');
+            if (!shopView) {
+                createPointsShopView();
+            } else {
+                shopView.style.display = 'block';
+                loadShopItems();
+            }
+            
+            currentView = 'shop';
+            if (typeof updateNavigation === 'function') {
+                updateNavigation();
+            } else {
+                // 回退：高亮底部“记录”按钮
+                updateNavActive('transaction');
+            }
+        }
+
+        // 创建积分商城视图
+        function createPointsShopView() {
+            const container = document.querySelector('.phone-container');
+            const shopView = document.createElement('div');
+            shopView.id = 'pointsShopView';
+            shopView.className = 'view';
+            shopView.innerHTML = `
+                <div class="view-header">
+                    <button class="back-btn" onclick="showHomeView()">← 返回</button>
+                    <h2>积分商城</h2>
+                    <div class="user-points">
+                        <span id="shopPointsDisplay">${currentUser.points}</span> 积分
+                    </div>
+                </div>
+                
+                <div class="shop-content">
+                    <div class="shop-categories">
+                        <button class="category-btn active" onclick="filterShopItems('all')">全部</button>
+                        <button class="category-btn" onclick="filterShopItems('virtual')">虚拟商品</button>
+                        <button class="category-btn" onclick="filterShopItems('physical')">实物商品</button>
+                        <button class="category-btn" onclick="filterShopItems('coupon')">优惠券</button>
+                    </div>
+                    
+                    <div id="shopItemsContainer" class="shop-items">
+                        <!-- 商品列表将动态加载 -->
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(shopView);
+            loadShopItems();
+        }
+
+        // 加载商城商品
+        async function loadShopItems() {
+            try {
+                const response = await fetch(`${API_BASE}/shop/items`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    renderShopItems(result.data);
+                }
+            } catch (error) {
+                showMessage('加载商品失败', 'error');
+            }
+        }
+
+        // 渲染商城商品
+        function renderShopItems(items) {
+            const container = document.getElementById('shopItemsContainer');
+            container.innerHTML = items.map(item => `
+                <div class="shop-item ${item.stock <= 0 ? 'out-of-stock' : ''}" data-category="${item.category}">
+                    <div class="item-image">
+                        <img src="${item.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7llYblkZU8L3RleHQ+Cjwvc3ZnPg=='}" alt="${item.name}">
+                        ${item.discount ? `<div class="discount-badge">-${item.discount}%</div>` : ''}
+                    </div>
+                    <div class="item-info">
+                        <h3 class="item-name">${item.name}</h3>
+                        <p class="item-description">${item.description}</p>
+                        <div class="item-footer">
+                            <div class="item-price">
+                                <span class="price">${item.price}</span> 积分
+                                ${item.originalPrice ? `<span class="original-price">${item.originalPrice}</span>` : ''}
+                            </div>
+                            <button class="buy-btn" onclick="buyShopItem('${item.id}')" ${item.stock <= 0 ? 'disabled' : ''}>
+                                ${item.stock <= 0 ? '缺货' : '兑换'}
+                            </button>
+                        </div>
+                        <div class="item-stock">库存: ${item.stock}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 筛选商品
+        function filterShopItems(category) {
+            // 更新分类按钮状态
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 显示/隐藏商品
+            document.querySelectorAll('.shop-item').forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // 购买商品
+        async function buyShopItem(itemId) {
+            try {
+                const response = await fetch(`${API_BASE}/shop/buy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        itemId: itemId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('兑换成功！', 'success');
+                    // 更新用户积分
+                    currentUser.points = result.data.newBalance;
+                    document.getElementById('shopPointsDisplay').textContent = currentUser.points;
+                    updateUserInterface();
+                    // 重新加载商品列表
+                    loadShopItems();
+                } else {
+                    showMessage(result.message || '兑换失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 显示积分转赠界面
+        function showPointsTransfer() {
+            if (!isLoggedIn || !currentUser) {
+                showLoginModal();
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'transfer-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>积分转赠</h3>
+                        <button class="close-btn" onclick="closeTransferModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="current-points">
+                            当前积分: <span>${currentUser.points}</span>
+                        </div>
+                        <form onsubmit="handlePointsTransfer(event)">
+                            <div class="form-group">
+                                <label>接收人邮箱/用户ID</label>
+                                <input type="text" id="transferRecipient" placeholder="请输入接收人邮箱或用户ID" required>
+                            </div>
+                            <div class="form-group">
+                                <label>转赠积分</label>
+                                <input type="number" id="transferAmount" placeholder="请输入转赠积分数量" min="1" max="${currentUser.points}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>转赠留言 (可选)</label>
+                                <textarea id="transferMessage" placeholder="留言给对方..."></textarea>
+                            </div>
+                            <div class="form-note">
+                                <p>• 每日最多转赠 5 次</p>
+                                <p>• 单次最少转赠 100 积分</p>
+                                <p>• 转赠不收取手续费</p>
+                            </div>
+                            <button type="submit" class="transfer-btn">确认转赠</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // 处理积分转赠
+        async function handlePointsTransfer(event) {
+            event.preventDefault();
+            
+            const recipient = document.getElementById('transferRecipient').value;
+            const amount = parseInt(document.getElementById('transferAmount').value);
+            const message = document.getElementById('transferMessage').value;
+            
+            if (amount < 100) {
+                showMessage('单次最少转赠 100 积分', 'error');
+                return;
+            }
+            
+            if (amount > currentUser.points) {
+                showMessage('积分余额不足', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/points/transfer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        fromUserId: currentUser.id,
+                        toUserIdentifier: recipient,
+                        amount: amount,
+                        message: message
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('转赠成功！', 'success');
+                    // 更新用户积分
+                    currentUser.points = result.data.newBalance;
+                    updateUserInterface();
+                    closeTransferModal();
+                } else {
+                    showMessage(result.message || '转赠失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 关闭转赠模态框
+        function closeTransferModal() {
+            const modal = document.querySelector('.transfer-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 显示提现申请界面
+        function showWithdrawalRequest() {
+            if (!isLoggedIn || !currentUser) {
+                showLoginModal();
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'withdrawal-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>💰 申请提现</h3>
+                        <button class="close-btn" onclick="closeWithdrawalModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="balance-info">
+                            <div class="balance-title">可提现积分</div>
+                            <div class="balance-amount">${(currentUser.points || 0).toLocaleString()}</div>
+                            <div class="balance-note">1000积分 = $1.00</div>
+                        </div>
+                        
+                        <div class="withdrawal-tabs">
+                            <button class="tab-btn active" onclick="switchWithdrawalTab('fiat')">法币提现</button>
+                            <button class="tab-btn" onclick="switchWithdrawalTab('crypto')">加密货币</button>
+                        </div>
+                        
+                        <!-- 法币提现 -->
+                        <div id="fiatWithdrawal" class="withdrawal-form">
+                            <div class="form-group">
+                                <label>💰 提现金额 (USD)</label>
+                                <div class="amount-input-group">
+                                    <span class="currency">$</span>
+                                    <input type="number" id="fiatAmount" placeholder="10.00" min="10" step="0.01" oninput="calculateFiatAmount()">
+                                </div>
+                                <small class="form-help">最低提现金额：$10.00</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>🏦 提现方式</label>
+                                <select id="fiatMethod">
+                                    <option value="">请选择提现方式</option>
+                                    <option value="paypal">PayPal</option>
+                                    <option value="bank">银行转账</option>
+                                    <option value="alipay">支付宝</option>
+                                    <option value="wechat">微信支付</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>📧 收款账户</label>
+                                <input type="text" id="fiatAccount" placeholder="请输入收款账户信息">
+                                <small class="form-help">请确保账户信息准确无误</small>
+                            </div>
+                            
+                            <div class="withdrawal-summary">
+                                <div class="summary-item">
+                                    <span>所需积分：</span>
+                                    <span id="fiatPointsNeeded">0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>手续费：</span>
+                                    <span>$0.50</span>
+                                </div>
+                                <div class="summary-item total">
+                                    <span>实际到账：</span>
+                                    <span id="fiatActualAmount">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 加密货币提现 -->
+                        <div id="cryptoWithdrawal" class="withdrawal-form" style="display: none;">
+                            <div class="form-group">
+                                <label>🪙 选择币种</label>
+                                <select id="cryptoType" onchange="updateCryptoInfo()">
+                                    <option value="">请选择加密货币</option>
+                                    <option value="USDT">USDT (Tether)</option>
+                                    <option value="USDC">USDC (USD Coin)</option>
+                                    <option value="BTC">BTC (Bitcoin)</option>
+                                    <option value="ETH">ETH (Ethereum)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>💰 提现数量</label>
+                                <div class="amount-input-group">
+                                    <input type="number" id="cryptoAmount" placeholder="0.00" step="0.00000001" oninput="calculateCryptoAmount()">
+                                    <span class="currency" id="cryptoCurrency">USDT</span>
+                                </div>
+                                <small class="form-help" id="cryptoMinAmount">请先选择币种</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>🏠 钱包地址</label>
+                                <input type="text" id="walletAddress" placeholder="请输入钱包地址">
+                                <small class="form-help" id="cryptoNetwork">请确保地址正确</small>
+                            </div>
+                            
+                            <div class="withdrawal-summary">
+                                <div class="summary-item">
+                                    <span>所需积分：</span>
+                                    <span id="cryptoPointsNeeded">0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>手续费：</span>
+                                    <span id="cryptoFee">0</span>
+                                </div>
+                                <div class="summary-item total">
+                                    <span>实际到账：</span>
+                                    <span id="cryptoActualAmount">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeWithdrawalModal()">取消</button>
+                        <button class="btn btn-primary" onclick="submitWithdrawal()">提交申请</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // 切换提现类型
+        function switchWithdrawalTab(type) {
+            // 更新标签页状态
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 显示对应表单
+            if (type === 'fiat') {
+                document.getElementById('fiatWithdrawal').style.display = 'block';
+                document.getElementById('cryptoWithdrawal').style.display = 'none';
+            } else {
+                document.getElementById('fiatWithdrawal').style.display = 'none';
+                document.getElementById('cryptoWithdrawal').style.display = 'block';
+            }
+        }
+
+        // 计算法币提现金额
+        function calculateFiatAmount() {
+            const amount = parseFloat(document.getElementById('fiatAmount').value) || 0;
+            const pointsNeeded = amount * 1000;
+            const actualAmount = Math.max(0, amount - 0.50);
+            
+            document.getElementById('fiatPointsNeeded').textContent = pointsNeeded.toLocaleString();
+            document.getElementById('fiatActualAmount').textContent = `$${actualAmount.toFixed(2)}`;
+        }
+
+        // 更新加密货币信息
+        function updateCryptoInfo() {
+            const cryptoType = document.getElementById('cryptoType').value;
+            const currencySpan = document.getElementById('cryptoCurrency');
+            const minAmountHelp = document.getElementById('cryptoMinAmount');
+            const networkHelp = document.getElementById('cryptoNetwork');
+            
+            const cryptoInfo = {
+                'USDT': { symbol: 'USDT', minAmount: 10, network: 'TRC20网络', fee: '1 USDT', rate: 100 },
+                'USDC': { symbol: 'USDC', minAmount: 10, network: 'ERC20网络', fee: '2 USDC', rate: 100 },
+                'BTC': { symbol: 'BTC', minAmount: 0.001, network: 'Bitcoin网络', fee: '0.0001 BTC', rate: 6500000 },
+                'ETH': { symbol: 'ETH', minAmount: 0.01, network: 'Ethereum网络', fee: '0.002 ETH', rate: 350000 }
+            };
+            
+            if (cryptoType && cryptoInfo[cryptoType]) {
+                const info = cryptoInfo[cryptoType];
+                currencySpan.textContent = info.symbol;
+                minAmountHelp.textContent = `最低提现：${info.minAmount} ${info.symbol}`;
+                networkHelp.textContent = `${info.network} - 请确保地址正确`;
+                
+                // 重置计算
+                calculateCryptoAmount();
+            } else {
+                currencySpan.textContent = '';
+                minAmountHelp.textContent = '请先选择币种';
+                networkHelp.textContent = '请确保地址正确';
+            }
+        }
+
+        // 计算加密货币提现金额
+        function calculateCryptoAmount() {
+            const cryptoType = document.getElementById('cryptoType').value;
+            const amount = parseFloat(document.getElementById('cryptoAmount').value) || 0;
+            
+            const cryptoInfo = {
+                'USDT': { fee: 1, rate: 100 },
+                'USDC': { fee: 2, rate: 100 },
+                'BTC': { fee: 0.0001, rate: 6500000 },
+                'ETH': { fee: 0.002, rate: 350000 }
+            };
+            
+            if (cryptoType && cryptoInfo[cryptoType]) {
+                const info = cryptoInfo[cryptoType];
+                const pointsNeeded = Math.ceil(amount * info.rate);
+                const actualAmount = Math.max(0, amount - info.fee);
+                
+                document.getElementById('cryptoPointsNeeded').textContent = pointsNeeded.toLocaleString();
+                document.getElementById('cryptoFee').textContent = `${info.fee} ${cryptoType}`;
+                document.getElementById('cryptoActualAmount').textContent = `${actualAmount.toFixed(8)} ${cryptoType}`;
+            }
+        }
+
+        // 提交提现申请
+        async function submitWithdrawal() {
+            const activeTab = document.querySelector('.tab-btn.active').textContent;
+            
+            try {
+                let requestData;
+                
+                if (activeTab === '法币提现') {
+                    const amount = parseFloat(document.getElementById('fiatAmount').value);
+                    const method = document.getElementById('fiatMethod').value;
+                    const account = document.getElementById('fiatAccount').value;
+                    
+                    if (!amount || amount < 10) {
+                        showMessage('请输入有效的提现金额（最低$10）', 'error');
+                        return;
+                    }
+                    
+                    if (!method) {
+                        showMessage('请选择提现方式', 'error');
+                        return;
+                    }
+                    
+                    if (!account) {
+                        showMessage('请输入收款账户信息', 'error');
+                        return;
+                    }
+                    
+                    requestData = {
+                        userId: currentUser.id,
+                        amount: amount,
+                        method: method,
+                        accountInfo: account
+                    };
+                } else {
+                    const cryptoType = document.getElementById('cryptoType').value;
+                    const amount = parseFloat(document.getElementById('cryptoAmount').value);
+                    const walletAddress = document.getElementById('walletAddress').value;
+                    
+                    if (!cryptoType) {
+                        showMessage('请选择加密货币类型', 'error');
+                        return;
+                    }
+                    
+                    const minAmounts = { 'USDT': 10, 'USDC': 10, 'BTC': 0.001, 'ETH': 0.01 };
+                    if (!amount || amount < minAmounts[cryptoType]) {
+                        showMessage(`请输入有效的提现数量（最低${minAmounts[cryptoType]} ${cryptoType}）`, 'error');
+                        return;
+                    }
+                    
+                    if (!walletAddress) {
+                        showMessage('请输入钱包地址', 'error');
+                        return;
+                    }
+                    
+                    requestData = {
+                        userId: currentUser.id,
+                        amount: amount,
+                        cryptoType: cryptoType,
+                        walletAddress: walletAddress
+                    };
+                }
+                
+                showMessage('正在提交申请...', 'info');
+                
+                const response = await fetch(`${API_BASE}/withdrawal/request`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('提现申请提交成功！', 'success');
+                    // 更新用户积分显示
+                    currentUser.points = currentUser.points - (activeTab === '法币提现' ? 
+                        parseFloat(document.getElementById('fiatAmount').value) * 1000 :
+                        Math.ceil(parseFloat(document.getElementById('cryptoAmount').value) * 
+                            { 'USDT': 100, 'USDC': 100, 'BTC': 6500000, 'ETH': 350000 }[document.getElementById('cryptoType').value])
+                    );
+                    updateUserInterface();
+                    closeWithdrawalModal();
+                } else {
+                    showMessage(result.message || '提现申请失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 关闭提现模态框
+        function closeWithdrawalModal() {
+            const modal = document.querySelector('.withdrawal-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // ===================== 会员系统功能 =====================
+
+        // 显示会员中心
+        function showMembershipCenter() {
+            if (!isLoggedIn || !currentUser) {
+                showLoginModal();
+                return;
+            }
+            
+            // 隐藏所有视图
+            document.querySelectorAll('.view').forEach(view => {
+                view.style.display = 'none';
+            });
+            
+            // 显示会员中心
+            const membershipView = document.getElementById('membershipView');
+            if (!membershipView) {
+                createMembershipView();
+            } else {
+                membershipView.style.display = 'block';
+                updateMembershipStatus();
+            }
+            
+            currentView = 'membership';
+            if (typeof updateNavigation === 'function') {
+                updateNavigation();
+            } else {
+                updateNavActive('discover');
+            }
+        }
+
+        // 创建会员中心视图
+        function createMembershipView() {
+            const container = document.querySelector('.phone-container');
+            const membershipView = document.createElement('div');
+            membershipView.id = 'membershipView';
+            membershipView.className = 'view';
+            membershipView.innerHTML = `
+                <div class="view-header">
+                    <button class="back-btn" onclick="showHomeView()">← 返回</button>
+                    <h2>会员中心</h2>
+                </div>
+                
+                <div class="membership-content">
+                    <!-- 当前会员状态 -->
+                    <div class="current-membership">
+                        <div class="membership-card" id="currentMembershipCard">
+                            <div class="membership-icon">👤</div>
+                            <div class="membership-info">
+                                <h3 id="currentMembershipName">免费用户</h3>
+                                <p id="membershipExpiry">永久有效</p>
+                            </div>
+                            <div class="membership-benefits" id="currentBenefits">
+                                <span class="benefit-tag">基础功能</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 会员套餐 -->
+                    <div class="membership-plans">
+                        <h3>升级会员</h3>
+                        <div class="plans-grid">
+                            <!-- 青铜会员 -->
+                            <div class="plan-card bronze" onclick="selectMembershipPlan('bronze')">
+                                <div class="plan-header">
+                                    <div class="plan-icon">🥉</div>
+                                    <h4>青铜会员</h4>
+                                    <div class="plan-badge">热门</div>
+                                </div>
+                                <div class="plan-price">
+                                    <span class="price">¥9.9</span>
+                                    <span class="period">/月</span>
+                                </div>
+                                <div class="plan-features">
+                                    <div class="feature">✓ 积分获取 +10%</div>
+                                    <div class="feature">✓ 去除横幅广告</div>
+                                    <div class="feature">✓ 专属青铜游戏</div>
+                                    <div class="feature">✓ 优先客服支持</div>
+                                    <div class="feature">✓ 提现手续费 -5%</div>
+                                </div>
+                                <div class="plan-points">或 1,000 积分</div>
+                            </div>
+                            
+                            <!-- 白银会员 -->
+                            <div class="plan-card silver" onclick="selectMembershipPlan('silver')">
+                                <div class="plan-header">
+                                    <div class="plan-icon">🥈</div>
+                                    <h4>白银会员</h4>
+                                </div>
+                                <div class="plan-price">
+                                    <span class="price">¥29.9</span>
+                                    <span class="period">/月</span>
+                                </div>
+                                <div class="plan-features">
+                                    <div class="feature">✓ 积分获取 +25%</div>
+                                    <div class="feature">✓ 完全无广告</div>
+                                    <div class="feature">✓ 独家白银游戏</div>
+                                    <div class="feature">✓ VIP客服通道</div>
+                                    <div class="feature">✓ 提现手续费 -10%</div>
+                                    <div class="feature">✓ 抽奖中奖率 +15%</div>
+                                </div>
+                                <div class="plan-points">或 3,000 积分</div>
+                            </div>
+                            
+                            <!-- 黄金会员 -->
+                            <div class="plan-card gold featured" onclick="selectMembershipPlan('gold')">
+                                <div class="plan-header">
+                                    <div class="plan-icon">🥇</div>
+                                    <h4>黄金会员</h4>
+                                    <div class="plan-badge popular">推荐</div>
+                                </div>
+                                <div class="plan-price">
+                                    <span class="price">¥59.9</span>
+                                    <span class="period">/月</span>
+                                </div>
+                                <div class="plan-features">
+                                    <div class="feature">✓ 积分获取 +35%</div>
+                                    <div class="feature">✓ 零广告体验</div>
+                                    <div class="feature">✓ 独家黄金内容</div>
+                                    <div class="feature">✓ 专属客户经理</div>
+                                    <div class="feature">✓ 提现手续费 -20%</div>
+                                    <div class="feature">✓ 抽奖中奖率 +25%</div>
+                                    <div class="feature">✓ 推荐奖励 +50%</div>
+                                </div>
+                                <div class="plan-points">或 6,000 积分</div>
+                            </div>
+                            
+                            <!-- 钻石会员 -->
+                            <div class="plan-card diamond" onclick="selectMembershipPlan('diamond')">
+                                <div class="plan-header">
+                                    <div class="plan-icon">💎</div>
+                                    <h4>钻石会员</h4>
+                                    <div class="plan-badge exclusive">尊贵</div>
+                                </div>
+                                <div class="plan-price">
+                                    <span class="price">¥99.9</span>
+                                    <span class="period">/月</span>
+                                </div>
+                                <div class="plan-features">
+                                    <div class="feature">✓ 积分获取 +50%</div>
+                                    <div class="feature">✓ 完全无广告</div>
+                                    <div class="feature">✓ 独家钻石内容</div>
+                                    <div class="feature">✓ 24/7专属服务</div>
+                                    <div class="feature">✓ 零手续费提现</div>
+                                    <div class="feature">✓ 抽奖中奖率 +50%</div>
+                                    <div class="feature">✓ 推荐奖励 +100%</div>
+                                    <div class="feature">✓ 专属NFT奖励</div>
+                                </div>
+                                <div class="plan-points">或 10,000 积分</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 会员特权详情 -->
+                    <div class="membership-privileges">
+                        <h3>会员特权说明</h3>
+                        <div class="privileges-list">
+                            <div class="privilege-item">
+                                <div class="privilege-icon">⚡</div>
+                                <div class="privilege-info">
+                                    <h4>积分加成</h4>
+                                    <p>会员可享受不同等级的积分获取加成，让您更快累积财富</p>
+                                </div>
+                            </div>
+                            <div class="privilege-item">
+                                <div class="privilege-icon">🚫</div>
+                                <div class="privilege-info">
+                                    <h4>无广告体验</h4>
+                                    <p>享受纯净的应用体验，不再被广告打扰</p>
+                                </div>
+                            </div>
+                            <div class="privilege-item">
+                                <div class="privilege-icon">🎮</div>
+                                <div class="privilege-info">
+                                    <h4>专属游戏</h4>
+                                    <p>解锁高等级会员专属的游戏和娱乐内容</p>
+                                </div>
+                            </div>
+                            <div class="privilege-item">
+                                <div class="privilege-icon">💰</div>
+                                <div class="privilege-info">
+                                    <h4>提现优惠</h4>
+                                    <p>享受更低的提现手续费，甚至零手续费</p>
+                                </div>
+                            </div>
+                            <div class="privilege-item">
+                                <div class="privilege-icon">🍀</div>
+                                <div class="privilege-info">
+                                    <h4>抽奖加成</h4>
+                                    <p>提高抽奖中奖概率，获得更多意外惊喜</p>
+                                </div>
+                            </div>
+                            <div class="privilege-item">
+                                <div class="privilege-icon">👥</div>
+                                <div class="privilege-info">
+                                    <h4>推荐奖励</h4>
+                                    <p>邀请好友可获得更高的推荐奖励</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(membershipView);
+            updateMembershipStatus();
+        }
+
+        // 更新会员状态显示
+        function updateMembershipStatus() {
+            if (!currentUser) return;
+            
+            const membershipLevels = {
+                'basic': { name: '免费用户', icon: '👤', class: 'free' },
+                'bronze': { name: '青铜会员', icon: '🥉', class: 'bronze' },
+                'silver': { name: '白银会员', icon: '🥈', class: 'silver' },
+                'gold': { name: '黄金会员', icon: '🥇', class: 'gold' },
+                'diamond': { name: '钻石会员', icon: '💎', class: 'diamond' }
+            };
+            
+            const currentLevel = currentUser.membership_level || 'basic';
+            const membership = membershipLevels[currentLevel];
+            
+            const card = document.getElementById('currentMembershipCard');
+            const nameEl = document.getElementById('currentMembershipName');
+            const iconEl = card.querySelector('.membership-icon');
+            
+            if (card && nameEl && iconEl) {
+                card.className = `membership-card ${membership.class}`;
+                nameEl.textContent = membership.name;
+                iconEl.textContent = membership.icon;
+            }
+        }
+
+        // 选择会员套餐
+        function selectMembershipPlan(level) {
+            showMembershipUpgradeModal(level);
+        }
+
+        // 显示会员升级模态框
+        function showMembershipUpgradeModal(level) {
+            const plans = {
+                'bronze': { name: '青铜会员', price: 9.9, points: 1000, icon: '🥉' },
+                'silver': { name: '白银会员', price: 29.9, points: 3000, icon: '🥈' },
+                'gold': { name: '黄金会员', price: 59.9, points: 6000, icon: '🥇' },
+                'diamond': { name: '钻石会员', price: 99.9, points: 10000, icon: '💎' }
+            };
+            
+            const plan = plans[level];
+            if (!plan) return;
+            
+            // 检查是否已经是该等级或更高等级
+            const currentLevel = currentUser.membership_level || 'basic';
+            const levelOrder = ['basic', 'bronze', 'silver', 'gold', 'diamond'];
+            if (levelOrder.indexOf(currentLevel) >= levelOrder.indexOf(level)) {
+                showMessage('您已经是该等级或更高等级的会员', 'error');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'membership-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${plan.icon} 升级到${plan.name}</h3>
+                        <button class="close-btn" onclick="closeMembershipModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="upgrade-plan-info">
+                            <div class="plan-summary">
+                                <div class="plan-title">${plan.name}</div>
+                                <div class="plan-duration">1个月有效期</div>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-methods">
+                            <h4>选择支付方式</h4>
+                            <div class="payment-options">
+                                <label class="payment-option">
+                                    <input type="radio" name="payment" value="points" checked>
+                                    <div class="option-content">
+                                        <div class="option-icon">💰</div>
+                                        <div class="option-info">
+                                            <div class="option-title">积分支付</div>
+                                            <div class="option-price">${plan.points.toLocaleString()} 积分</div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="payment-option">
+                                    <input type="radio" name="payment" value="money">
+                                    <div class="option-content">
+                                        <div class="option-icon">💳</div>
+                                        <div class="option-info">
+                                            <div class="option-title">现金支付</div>
+                                            <div class="option-price">¥${plan.price}</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="upgrade-benefits">
+                            <h4>升级后您将获得</h4>
+                            <div class="benefits-list" id="upgradeBenefits">
+                                <!-- 动态生成权益列表 -->
+                            </div>
+                        </div>
+                        
+                        <div class="balance-check">
+                            <div class="balance-info">
+                                <span>当前积分:</span>
+                                <span>${(currentUser.points || 0).toLocaleString()}</span>
+                            </div>
+                            <div class="balance-status" id="balanceStatus">
+                                ${(currentUser.points || 0) >= plan.points ? 
+                                    '<span class="sufficient">✓ 积分充足</span>' : 
+                                    '<span class="insufficient">✗ 积分不足</span>'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeMembershipModal()">取消</button>
+                        <button class="btn btn-primary" onclick="confirmMembershipUpgrade('${level}')">确认升级</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 更新权益列表
+            updateUpgradeBenefits(level);
+        }
+
+        // 更新升级权益显示
+        function updateUpgradeBenefits(level) {
+            const benefits = {
+                'bronze': ['积分获取 +10%', '去除横幅广告', '专属青铜游戏', '优先客服支持', '提现手续费 -5%'],
+                'silver': ['积分获取 +25%', '完全无广告', '独家白银游戏', 'VIP客服通道', '提现手续费 -10%', '抽奖中奖率 +15%'],
+                'gold': ['积分获取 +35%', '零广告体验', '独家黄金内容', '专属客户经理', '提现手续费 -20%', '抽奖中奖率 +25%', '推荐奖励 +50%'],
+                'diamond': ['积分获取 +50%', '完全无广告', '独家钻石内容', '24/7专属服务', '零手续费提现', '抽奖中奖率 +50%', '推荐奖励 +100%', '专属NFT奖励']
+            };
+            
+            const benefitsList = document.getElementById('upgradeBenefits');
+            if (benefitsList && benefits[level]) {
+                benefitsList.innerHTML = benefits[level].map(benefit => 
+                    `<div class="benefit-item">✓ ${benefit}</div>`
+                ).join('');
+            }
+        }
+
+        // 确认会员升级
+        async function confirmMembershipUpgrade(level) {
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            
+            try {
+                showMessage('正在处理升级...', 'info');
+                
+                const response = await fetch(`${API_BASE}/membership/upgrade`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        level: level,
+                        paymentMethod: paymentMethod
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('会员升级成功！', 'success');
+                    // 更新用户信息
+                    currentUser.membership_level = level;
+                    if (paymentMethod === 'points') {
+                        currentUser.points = result.data.newBalance;
+                    }
+                    updateUserInterface();
+                    updateMembershipStatus();
+                    closeMembershipModal();
+                } else {
+                    showMessage(result.message || '升级失败', 'error');
+                }
+            } catch (error) {
+                showMessage('网络错误，请重试', 'error');
+            }
+        }
+
+        // 关闭会员模态框
+        function closeMembershipModal() {
+            const modal = document.querySelector('.membership-modal');
+            if (modal) {
+                modal.remove();
+            }
         }
         
         // 页面加载时初始化
