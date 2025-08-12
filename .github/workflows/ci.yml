@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  sanity-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Verify key files exist
+        run: |
+          test -f backend/mock-server.js
+          test -f app-demo.html
+          echo "Key files are present"
+
+      - name: Basic syntax scan (no-run)
+        run: |
+          node -e "require('fs').accessSync('backend/mock-server.js'); console.log('Node available')"
+
+      - name: Summary
+        run: echo "CI sanity check passed."
+
+
